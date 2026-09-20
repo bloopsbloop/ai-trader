@@ -1,6 +1,10 @@
 from app.models.signal import Signal
 from app.models.trade import Trade
+
+from app.core.portfolio import Portfolio
+from app.core.broker import Broker
 from app.core.risk_manager import RiskManager
+from app.models.order import OrderStatus
 
 
 class BacktestEngine:
@@ -9,13 +13,11 @@ class BacktestEngine:
 
         self.strategy = strategy
 
-        self.balance = 1000.0
-
-        self.position = None
+        self.portfolio = Portfolio(1000)
+        self.risk_manager = RiskManager(risk_percent=2)
+        self.broker = Broker(risk_manager=self.risk_manager)
 
         self.trades = []
-
-        self.risk = RiskManager()
 
     def run(self, candles):
 
@@ -27,34 +29,33 @@ class BacktestEngine:
 
             signal = self.strategy.analyze(prices)
 
-            if signal == Signal.BUY and self.position is None:
+            if signal == Signal.BUY and not self.portfolio.has_position():
 
-                self.position = candle.close
-
-            elif signal == Signal.SELL and self.position is not None:
-
-                position_size = self.risk.calculate_position_size(
-                    self.balance
+                amount = self.risk_manager.calculate_position_size(self.portfolio.balance)
+                self.broker.buy(
+                    self.portfolio,
+                    candle.close,
+                    amount
                 )
 
-                profit_percent = (
-                    candle.close - self.position
-                ) / self.position
+            elif signal == Signal.SELL and self.portfolio.has_position():
 
-                profit = position_size * profit_percent
-
-                self.balance += profit
-
-                self.trades.append(
-                    Trade(
-                        entry=self.position,
-                        exit=candle.close,
-                        profit=profit,
-                        profit_percent=profit_percent * 100
+                result = self.broker.sell(
+                    self.portfolio,
+                    candle.close
+                )
+                if result.status == OrderStatus.FILLED:
+                    self.trades.append(
+                        Trade(
+                            entry=result.entry_price,
+                            exit=result.price,
+                            profit=result.realized_pnl,
+                            profit_percent=(
+                                (result.price - result.entry_price)
+                                / result.entry_price
+                            ) * 100
+                        )
                     )
-                )
-
-                self.position = None
 
         self.print_statistics()
 
@@ -62,19 +63,21 @@ class BacktestEngine:
 
         print("=" * 40)
 
-        print(f"Start   : 1000.00$")
-        print(f"Balance : {self.balance:.2f}$")
-        print(f"Profit  : {self.balance - 1000:.2f}$")
+        print(f"Start Balance : 1000.00$")
+        print(f"End Balance   : {self.portfolio.balance:.2f}$")
+        print(f"Profit        : {self.portfolio.balance - 1000:.2f}$")
 
-        print(f"Trades  : {len(self.trades)}")
+        print()
 
-        if len(self.trades) == 0:
+        print(f"Trades        : {len(self.trades)}")
+
+        if not self.trades:
             return
 
         wins = len([t for t in self.trades if t.profit > 0])
 
         losses = len(self.trades) - wins
 
-        print(f"Wins    : {wins}")
-        print(f"Losses  : {losses}")
-        print(f"WinRate : {wins / len(self.trades) * 100:.2f}%")
+        print(f"Wins          : {wins}")
+        print(f"Losses        : {losses}")
+        print(f"Win Rate      : {wins / len(self.trades) * 100:.2f}%")
