@@ -1,5 +1,6 @@
 from app.models.signal import Signal
 from app.models.trade import Trade
+from app.core.risk_manager import RiskManager
 
 
 class BacktestEngine:
@@ -8,11 +9,13 @@ class BacktestEngine:
 
         self.strategy = strategy
 
-        self.balance = 1000
+        self.balance = 1000.0
 
         self.position = None
 
         self.trades = []
+
+        self.risk = RiskManager()
 
     def run(self, candles):
 
@@ -30,9 +33,15 @@ class BacktestEngine:
 
             elif signal == Signal.SELL and self.position is not None:
 
-                profit = candle.close - self.position
+                position_size = self.risk.calculate_position_size(
+                    self.balance
+                )
 
-                percent = (profit / self.position) * 100
+                profit_percent = (
+                    candle.close - self.position
+                ) / self.position
+
+                profit = position_size * profit_percent
 
                 self.balance += profit
 
@@ -41,7 +50,7 @@ class BacktestEngine:
                         entry=self.position,
                         exit=candle.close,
                         profit=profit,
-                        profit_percent=percent
+                        profit_percent=profit_percent * 100
                     )
                 )
 
@@ -53,7 +62,9 @@ class BacktestEngine:
 
         print("=" * 40)
 
-        print(f"Balance : {self.balance:.2f}")
+        print(f"Start   : 1000.00$")
+        print(f"Balance : {self.balance:.2f}$")
+        print(f"Profit  : {self.balance - 1000:.2f}$")
 
         print(f"Trades  : {len(self.trades)}")
 
@@ -65,7 +76,5 @@ class BacktestEngine:
         losses = len(self.trades) - wins
 
         print(f"Wins    : {wins}")
-
         print(f"Losses  : {losses}")
-
         print(f"WinRate : {wins / len(self.trades) * 100:.2f}%")
