@@ -1,0 +1,22 @@
+# Virtual environment
+.venv/
+
+# PyCharm
+.idea/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment variables
+.env
+
+# Logs
+logs/
+
+# Data
+data/
+
+# OS
+.DS_Store
+Thumbs.db
