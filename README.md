@@ -30,6 +30,42 @@ print(statistics.max_drawdown)
 `run()` выводит форматированный отчёт и возвращает объект `Statistics`; equity curve
 доступна в `engine.equity_curve`.
 
+## Strategy Optimizer
+
+`StrategyOptimizer` перебирает переданную сетку параметров только на TRAIN (по
+умолчанию 60% свечей). После выбора по TRAIN с прозрачным weighted score он запускает
+лучшие параметры на VALIDATION (20%) и TEST (20%). Test-набор не участвует в подборе.
+
+Score — это настраиваемая линейная комбинация: `return - max_drawdown + sharpe +
+profit_factor`; веса каждого слагаемого передаются через `scoring_weights`, а стратегии
+с числом сделок меньше `minimum_trade_count` исключаются. Profit factor ограничивается
+значением 5 внутри score, чтобы одна серия без убытков не доминировала над оценкой.
+
+```python
+from app.core.historical_data import HistoricalDataProvider
+from app.optimizer import StrategyOptimizer
+from app.strategies.ema_strategy import EMAStrategy
+
+candles = HistoricalDataProvider().get_history(
+    symbol="BTCUSDT", interval="1h", start_date="2024-01-01", end_date="2024-06-30"
+)
+optimizer = StrategyOptimizer(
+    backtest_config={"start_balance": 1000, "slippage": 0.0005},
+    scoring_weights={"return": 1.0, "max_drawdown": 1.5, "sharpe": 2.0, "profit_factor": 1.0},
+    minimum_trade_count=5,
+)
+result = optimizer.optimize(
+    strategy_class=EMAStrategy,
+    parameter_grid={"fast": [10, 15, 20, 25, 30], "slow": [40, 50, 60, 80, 100]},
+    candles=candles,
+    symbol="BTCUSDT",
+    interval="1h",
+)
+print(result.best_parameters)
+```
+
+CSV и JSON со всеми комбинациями сохраняются в `data/optimization/`.
+
 ## Historical Data Engine
 
 `HistoricalDataProvider` загружает исторические свечи Binance и кэширует их в
