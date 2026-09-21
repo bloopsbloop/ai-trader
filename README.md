@@ -129,3 +129,23 @@ print(f"Loaded {len(candles)} candles")
 ```powershell
 python -m pytest
 ```
+
+## Historical research (Milestone 6.5)
+
+Run `python -m app.research.evaluation` to reproduce the fixed study protocol.
+It caches public BTCUSDT and ETHUSDT spot candles (`1h` and `4h`) from
+2021-01-01 through the last complete UTC day. The evaluation uses candles from
+2023-09-01 onward, about three years. For each strategy and market, the inner
+optimizer runs on the development portion only. Walk-forward uses moving train
+and validation windows and leaves the final 20% for one final evaluation.
+
+Reports are written to `data/research/<SYMBOL>_<INTERVAL>/` and the combined
+table to `data/research/summary.csv` and `.json`. The same final holdout has
+a gross Buy & Hold benchmark; its return, drawdown and Sharpe omit trading costs.
+Strategy tests include commission and slippage. Parameter stability is a local
+neighbor heuristic; diagnostic flags are prompts for investigation, not proof
+of overfitting. Research uses the latest 1000 completed candles for indicator
+calculation, so long-history EMA values are approximated by a rolling warm-up.
+
+Once final test results are inspected, treat this holdout as used. Any later
+parameter changes require a new, later untouched holdout for a fresh claim.

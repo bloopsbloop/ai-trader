@@ -169,7 +169,7 @@ class StrategyOptimizer:
 
     def walk_forward(self, strategy_class, parameter_grid, candles, train_size, validation_size, step_size,
                      anchored=False, test_fraction=0.20, backtest_config=None, symbol="BTCUSDT", interval="1h",
-                     export=True, stability_fraction=0.10):
+                     export=True, stability_fraction=0.10, stability_parameters=None):
         values = list(candles)
         splits, test_start = self.walk_forward_splits(values, train_size, validation_size, step_size, anchored, test_fraction)
         config = {**self.backtest_config, **(backtest_config or {}), "symbol": symbol}
@@ -182,7 +182,8 @@ class StrategyOptimizer:
                                              best.parameters, best.train_metrics, validation))
         final_ranked = self._rank(strategy_class, parameter_grid, values[:test_start], config)
         final_best = final_ranked[0]
-        stability = self.parameter_stability(strategy_class, final_best.parameters, values[:test_start], config, stability_fraction)
+        stability = self.parameter_stability(strategy_class, final_best.parameters, values[:test_start], config,
+                                             stability_fraction, stability_parameters)
         test_metrics = self._run(strategy_class, final_best.parameters, values[test_start:], config, values[:test_start])
         result = WalkForwardResult(windows, final_best.parameters, test_metrics, stability)
         if export:
@@ -201,13 +202,15 @@ class StrategyOptimizer:
             raise ValueError("No parameter combination meets the minimum trade count")
         return ranked
 
-    def parameter_stability(self, strategy_class, parameters, candles, config=None, fraction=0.10):
+    def parameter_stability(self, strategy_class, parameters, candles, config=None, fraction=0.10, names=None):
         if not 0 < fraction < 1:
             raise ValueError("fraction must be between 0 and 1")
         config = config or self.backtest_config
         baseline = self.scoring.calculate(self._run(strategy_class, parameters, candles, config))
         neighbors = []
         for name, value in parameters.items():
+            if names is not None and name not in names:
+                continue
             if not isinstance(value, (int, float)) or isinstance(value, bool):
                 continue
             for direction in (-1, 1):

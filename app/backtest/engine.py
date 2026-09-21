@@ -24,7 +24,10 @@ class BacktestEngine:
         position_size=0.02,
         max_position_fraction=0.20,
         periods_per_year=365,
+        indicator_lookback=None,
     ):
+        if indicator_lookback is not None and indicator_lookback < 1:
+            raise ValueError("indicator_lookback must be positive")
         for name, value in (("maker_commission", maker_commission), ("taker_commission", taker_commission), ("slippage", slippage)):
             self._validate_rate(name, value)
         for name, value in (("stop_loss", stop_loss), ("take_profit", take_profit), ("trailing_stop", trailing_stop)):
@@ -40,6 +43,7 @@ class BacktestEngine:
         self.take_profit = take_profit
         self.trailing_stop = trailing_stop
         self.periods_per_year = periods_per_year
+        self.indicator_lookback = indicator_lookback
         self.risk_manager = RiskManager(risk_percent=position_size, max_position_fraction=max_position_fraction)
         self.broker = Broker(taker_commission, self.risk_manager, maker_commission)
         self._reset_run_state()
@@ -50,7 +54,8 @@ class BacktestEngine:
         candle_list = list(candles)
         for candle in candle_list:
             observed.append(candle)
-            context = MarketContext(tuple(observed))
+            visible = observed[-self.indicator_lookback:] if self.indicator_lookback is not None else observed
+            context = MarketContext(tuple(visible))
             if self.portfolio.has_position():
                 self._process_protective_exit(candle)
                 if not self.portfolio.has_position():
