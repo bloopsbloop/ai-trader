@@ -214,3 +214,12 @@ python -m app.telegram.weekly_report
 Trade notifications are emitted only after a virtual trade is committed to SQLite.
 Alerts use persisted per-key cooldowns; daily and weekly commands are lightweight
 manual entry points, appropriate for OS Task Scheduler if automatic delivery is wanted.
+
+## System Recovery
+
+The paper runner stores the last processed closed candle in SQLite. After a computer
+restart, process stop, temporary internet outage, or Binance outage, it requests the
+available closed-candle history again and processes every candle after that checkpoint
+in chronological order. A Telegram alert is best-effort and cooldown-protected; it
+cannot block recovery or alter virtual trading logic. Startup prints SQLite, paper
+storage, history, Telegram and Binance diagnostics.

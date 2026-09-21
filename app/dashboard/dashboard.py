@@ -16,7 +16,7 @@ def _dataframe(rows):
 def _metrics(report):
     state = report["state"]
     return {
-        "Current balance": round(state["cash"], 2), "Equity": round(report["equity"], 2),
+        "Cash": round(state["cash"], 2), "Position Value": round(report["equity"] - state["cash"], 2), "Equity": round(report["equity"], 2),
         "Realized PnL": round(state["realized_pnl"], 2), "Open position": "Yes" if state["position"] else "No",
         "Trades": report["trades"], "Win rate": round(report["win_rate"], 2),
         "Profit factor": report["profit_factor"], "Sharpe": round(report["sharpe"], 2),
@@ -79,6 +79,11 @@ def optimizer_page(st):
     st.dataframe(_dataframe(rows[:20]), use_container_width=True)
     heatmap = parameter_heatmap(rows)
     if heatmap:
+        try:
+            import matplotlib
+        except ImportError:
+            st.warning("Heatmap unavailable. Install matplotlib.")
+            return
         frame = _dataframe([{"parameter_a": key[0], "parameter_b": key[1], "score": value} for key, value in heatmap.items()])
         st.subheader("Parameter Heatmap")
         st.dataframe(frame.pivot(index="parameter_a", columns="parameter_b", values="score").style.background_gradient(cmap="viridis"), use_container_width=True)
@@ -109,6 +114,11 @@ def comparison_page(st):
 def overview_page(st):
     storage = PaperStorage()
     _metric_cards(st, {"Paper Experiments": len(storage.active_experiments()), "Backtests": len(load_research_rows()), "Optimizer Results": len(optimizer_rows()), "Research Reports": len(list((project_root() / "data" / "research").glob("*_*/report.json")))})
+    states = [state for _, state in storage.active_experiments()]
+    last_candle = max((state.get("last_processed_candle") or "" for state in states), default="—")
+    telegram = TelegramNotifier(storage).status()
+    st.subheader("System Status")
+    _metric_cards(st, {"Telegram": "Configured" if telegram["configured"] else "Not configured", "Runner": "Experiments active" if states else "No active experiments", "SQLite": "OK", "Last candle": last_candle})
     st.caption("All dashboard data is read-only. It never places orders or reads exchange credentials.")
 
 
@@ -129,3 +139,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

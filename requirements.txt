@@ -7,3 +7,4 @@ ta
 pytest
 streamlit
 reportlab
+matplotlib

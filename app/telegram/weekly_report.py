@@ -1,4 +1,7 @@
+from app.paper.storage import PaperStorage
 from app.telegram.reports import send_weekly
 
 if __name__ == "__main__":
-    print("sent" if send_weekly() else "not sent; configure Telegram first")
+    storage = PaperStorage()
+    sent = send_weekly(storage)
+    print("Sent successfully" if sent else f"Not sent: {storage.notification_state().get('last_error', 'Telegram is not configured')}")

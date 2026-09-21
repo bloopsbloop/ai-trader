@@ -5,6 +5,7 @@ from app.paper.experiments import create_initial_experiments
 from app.paper.runner import PaperRunner
 from app.paper.storage import PaperStorage
 from app.telegram.notifier import TelegramNotifier
+from app.telegram.diagnostics import format_checks, startup_checks
 
 
 def main():
@@ -19,6 +20,7 @@ def main():
         for experiment in create_initial_experiments(storage):
             print(f"Created {experiment.experiment_id} {experiment.symbol} {experiment.timeframe} {experiment.strategy}")
     runner = PaperRunner(storage, notifier=notifier)
+    print(format_checks(startup_checks(storage, runner.market_data, notifier)))
     while True:
         try:
             for message in runner.run_once():
@@ -32,3 +34,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
