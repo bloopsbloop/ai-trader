@@ -4,6 +4,7 @@ import time
 from app.paper.experiments import create_initial_experiments
 from app.paper.runner import PaperRunner
 from app.paper.storage import PaperStorage
+from app.telegram.notifier import TelegramNotifier
 
 
 def main():
@@ -13,13 +14,17 @@ def main():
     parser.add_argument("--interval", type=int, default=300, help="Polling interval in seconds (minimum 60)")
     args = parser.parse_args()
     storage = PaperStorage()
+    notifier = TelegramNotifier(storage)
     if args.create_initial:
         for experiment in create_initial_experiments(storage):
             print(f"Created {experiment.experiment_id} {experiment.symbol} {experiment.timeframe} {experiment.strategy}")
-    runner = PaperRunner(storage)
+    runner = PaperRunner(storage, notifier=notifier)
     while True:
-        for message in runner.run_once():
-            print(message)
+        try:
+            for message in runner.run_once():
+                print(message)
+        except Exception:
+            notifier.alert("paper_runner_exception", "Paper runner exception. Check local logs.")
         if not args.loop:
             return
         time.sleep(max(60, args.interval))

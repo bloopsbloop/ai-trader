@@ -18,9 +18,10 @@ STRATEGIES = {strategy.__name__: strategy for strategy in (EMAStrategy, RSIStrat
 
 
 class PaperRunner:
-    def __init__(self, storage=None, market_data=None):
+    def __init__(self, storage=None, market_data=None, notifier=None):
         self.storage = storage or PaperStorage()
         self.market_data = market_data or PublicMarketData()
+        self.notifier = notifier
 
     def run_once(self):
         messages = []
@@ -59,12 +60,14 @@ class PaperRunner:
             if signal == Signal.SELL:
                 order = broker.market_sell(portfolio, candle.close)
                 self.storage.add_trade(experiment.experiment_id, order, candle.open_time.isoformat())
+                self._notify_trade(experiment, order, state, portfolio.equity(candle.close))
                 action = "SELL"
         else:
             signal = strategy.analyze_context(context)
             if signal == Signal.BUY:
                 order = broker.market_buy(portfolio, candle.close, experiment.symbol)
                 self.storage.add_trade(experiment.experiment_id, order, candle.open_time.isoformat())
+                self._notify_trade(experiment, order, state, portfolio.equity(candle.close))
                 action = "BUY"
         equity = portfolio.equity(candle.close)
         state["last_price"] = candle.close
@@ -76,6 +79,13 @@ class PaperRunner:
         self._write_portfolio(state, portfolio)
         position = portfolio.position.quantity if portfolio.position else 0.0
         return f"{candle.open_time} {experiment.experiment_id[:8]} {experiment.symbol} {experiment.timeframe} close={candle.close:.2f} signal={signal.value} action={action} position={position:.8f} cash={portfolio.balance:.2f} equity={equity:.2f} realized={portfolio.realized_pnl:.2f}"
+
+    def _notify_trade(self, experiment, order, state, equity):
+        if self.notifier is not None:
+            try:
+                self.notifier.notify_trade(experiment, order, state, equity)
+            except Exception:
+                pass
 
     @staticmethod
     def _portfolio(experiment, state):
@@ -93,4 +103,5 @@ class PaperRunner:
         state["realized_pnl"] = portfolio.realized_pnl
         state["fees"] = portfolio.total_commissions
         state["position"] = portfolio.position.__dict__ if portfolio.position else None
+
 

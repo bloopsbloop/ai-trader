@@ -191,3 +191,26 @@ charts, trades, optimizer results and heatmaps, walk-forward stability, research
 comparisons and Buy & Hold context. Each paper page can download CSV, JSON, HTML
 and PDF reports. Dashboard warnings (few trades, drawdown, overfitting diagnostics
 and negative expectancy) are prompts for investigation, not trading advice.
+
+## Telegram notifications
+
+Telegram is notification-only: it cannot send Binance orders and supports no chat
+commands. Create a bot in Telegram with **@BotFather**, copy its token, then send a
+message to the bot and obtain your numeric chat ID (for example through the Bot API
+`getUpdates` response). Copy `.env.example` to `.env` and set:
+
+```text
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
+```
+
+```powershell
+python -m app.telegram.test
+python -m app.paper.run --loop --interval 300
+python -m app.telegram.daily_report
+python -m app.telegram.weekly_report
+```
+
+Trade notifications are emitted only after a virtual trade is committed to SQLite.
+Alerts use persisted per-key cooldowns; daily and weekly commands are lightweight
+manual entry points, appropriate for OS Task Scheduler if automatic delivery is wanted.

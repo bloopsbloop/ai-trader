@@ -21,6 +21,9 @@ class PaperStorage:
                     side TEXT NOT NULL, price REAL NOT NULL, quantity REAL NOT NULL, commission REAL NOT NULL,
                     realized_pnl REAL NOT NULL, candle_open_time TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS notification_state (
+                    key TEXT PRIMARY KEY, value TEXT NOT NULL
+                );
             """)
 
     def _connect(self):
@@ -62,6 +65,36 @@ class PaperStorage:
         with self._connection() as connection:
             ids = [row[0] for row in connection.execute("SELECT experiment_id FROM experiments WHERE status=?", (ExperimentStatus.RUNNING.value,))]
         return [self.get_experiment(experiment_id) for experiment_id in ids]
+
+    def all_experiments(self):
+        with self._connection() as connection:
+            ids = [row[0] for row in connection.execute("SELECT experiment_id FROM experiments ORDER BY created_at")]
+        return [self.get_experiment(experiment_id) for experiment_id in ids]
+
+    def notification_state(self):
+        with self._connection() as connection:
+            rows = connection.execute("SELECT key, value FROM notification_state").fetchall()
+        return dict(rows)
+
+    def notification_result(self, success, error=None):
+        from datetime import datetime, timezone
+        with self._connection() as connection:
+            if success:
+                connection.execute("INSERT OR REPLACE INTO notification_state VALUES (?, ?)", ("last_success", datetime.now(timezone.utc).isoformat()))
+                connection.execute("DELETE FROM notification_state WHERE key='last_error'")
+            else:
+                connection.execute("INSERT OR REPLACE INTO notification_state VALUES (?, ?)", ("last_error", error or "Notification failed"))
+
+    def claim_alert(self, key, cooldown_seconds):
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
+        state = self.notification_state()
+        previous = state.get(f"alert:{key}")
+        if previous and now - datetime.fromisoformat(previous) < timedelta(seconds=cooldown_seconds):
+            return False
+        with self._connection() as connection:
+            connection.execute("INSERT OR REPLACE INTO notification_state VALUES (?, ?)", (f"alert:{key}", now.isoformat()))
+        return True
 
     def save_state(self, experiment_id, state):
         with self._connection() as connection:
