@@ -1,7 +1,8 @@
 from app.indicators.ema import EMA
 from app.models.signal import Signal
+from app.strategies.base import BaseStrategy
 
-class EMAStrategy:
+class EMAStrategy(BaseStrategy):
     def __init__(self, fast=20, slow=50):
         if not 0 < fast < slow:
             raise ValueError("fast EMA period must be positive and smaller than slow EMA period")

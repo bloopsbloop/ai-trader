@@ -6,6 +6,7 @@ from app.core.risk_manager import RiskManager
 from app.models.order import OrderStatus
 from app.models.signal import Signal
 from app.models.trade import Trade
+from app.strategies.base import MarketContext
 
 
 class BacktestEngine:
@@ -43,17 +44,22 @@ class BacktestEngine:
         self.broker = Broker(taker_commission, self.risk_manager, maker_commission)
         self._reset_run_state()
 
-    def run(self, candles, print_report=True):
+    def run(self, candles, print_report=True, warmup_candles=()):
         self._reset_run_state()
-        prices = []
+        observed = list(warmup_candles)
         candle_list = list(candles)
         for candle in candle_list:
-            prices.append(candle.close)
+            observed.append(candle)
+            context = MarketContext(tuple(observed))
             if self.portfolio.has_position():
                 self._process_protective_exit(candle)
-            if not self.portfolio.has_position() and self.strategy.analyze(prices) == Signal.BUY:
-                self._open_position(candle)
-            elif self.portfolio.has_position() and self.strategy.analyze(prices) == Signal.SELL:
+                if not self.portfolio.has_position():
+                    self.equity_curve.append(EquityPoint(candle.open_time, self.portfolio.equity(candle.close)))
+                    continue
+            signal = self.strategy.analyze_context(context) if hasattr(self.strategy, "analyze_context") else self.strategy.analyze(context.prices)
+            if not self.portfolio.has_position() and signal == Signal.BUY:
+                self._open_position(candle, context)
+            elif self.portfolio.has_position() and signal == Signal.SELL:
                 self._close_position(candle.close, candle.open_time, "signal")
             self.equity_curve.append(EquityPoint(candle.open_time, self.portfolio.equity(candle.close)))
         if candle_list and self.portfolio.has_position():
@@ -70,23 +76,27 @@ class BacktestEngine:
             raise RuntimeError("Run the backtest before printing statistics")
         return Report.print(self.statistics)
 
-    def _open_position(self, candle):
+    def _open_position(self, candle, context):
         amount = self.risk_manager.calculate_position_size(self.portfolio.balance)
         order = self.broker.buy(self.portfolio, candle.close * (1 + self.slippage), amount, self.symbol)
         if order.status == OrderStatus.FILLED:
             self._entry_order = order
             self._entry_time = candle.open_time
             self._highest_price = candle.high
+            self._stop_price, self._take_price = self.strategy.protective_levels(context, order.price) if hasattr(self.strategy, "protective_levels") else (None, None)
 
     def _process_protective_exit(self, candle):
         entry_price = self._entry_order.price
-        self._highest_price = max(self._highest_price, candle.high)
-        if self.stop_loss is not None and candle.low <= entry_price * (1 - self.stop_loss):
-            self._close_position(entry_price * (1 - self.stop_loss), candle.open_time, "stop_loss")
-        elif self.take_profit is not None and candle.high >= entry_price * (1 + self.take_profit):
-            self._close_position(entry_price * (1 + self.take_profit), candle.open_time, "take_profit")
+        stop_price = self._stop_price if self._stop_price is not None else entry_price * (1 - self.stop_loss) if self.stop_loss is not None else None
+        take_price = self._take_price if self._take_price is not None else entry_price * (1 + self.take_profit) if self.take_profit is not None else None
+        if stop_price is not None and candle.low <= stop_price:
+            self._close_position(min(candle.open, stop_price), candle.open_time, "stop_loss")
+        elif take_price is not None and candle.high >= take_price:
+            self._close_position(take_price, candle.open_time, "take_profit")
         elif self.trailing_stop is not None and candle.low <= self._highest_price * (1 - self.trailing_stop):
-            self._close_position(self._highest_price * (1 - self.trailing_stop), candle.open_time, "trailing_stop")
+            self._close_position(min(candle.open, self._highest_price * (1 - self.trailing_stop)), candle.open_time, "trailing_stop")
+        if self.portfolio.has_position():
+            self._highest_price = max(self._highest_price, candle.high)
 
     def _close_position(self, price, timestamp, reason):
         entry_order = self._entry_order
@@ -101,6 +111,8 @@ class BacktestEngine:
             self._entry_order = None
             self._entry_time = None
             self._highest_price = None
+            self._stop_price = None
+            self._take_price = None
 
     def _reset_run_state(self):
         self.portfolio = Portfolio(self.start_balance)
@@ -112,6 +124,8 @@ class BacktestEngine:
         self._entry_order = None
         self._entry_time = None
         self._highest_price = None
+        self._stop_price = None
+        self._take_price = None
 
     @staticmethod
     def _validate_rate(name, value):

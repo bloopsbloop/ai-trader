@@ -66,6 +66,40 @@ print(result.best_parameters)
 
 CSV и JSON со всеми комбинациями сохраняются в `data/optimization/`.
 
+## Strategy suite и walk-forward
+
+Индикаторы RSI, ATR, MACD и SMA работают с обычными списками (ATR требует свечи с
+`high`, `low`, `close`). Новые стратегии: `RSIStrategy`, `EMARSIStrategy` и
+`EMARSIATRStrategy`. Они принимают параметры в конструкторе и могут участвовать
+в оптимизации. Бэктестер передаёт стратегии `MarketContext` с доступными на
+текущий момент свечами. При оценке validation и test прошлые свечи прогревают
+индикаторы, но сделки и метрики начинаются только с оцениваемого периода.
+
+```python
+from app.core.historical_data import HistoricalDataProvider
+from app.optimizer import StrategyOptimizer, StrategyComparator
+from app.strategies.ema_rsi_strategy import EMARSIStrategy
+from app.strategies.rsi_strategy import RSIStrategy
+
+candles = HistoricalDataProvider().get_history("BTCUSDT", "1h", "2024-01-01", "2024-12-31")
+optimizer = StrategyOptimizer(minimum_trade_count=3)
+grid = {"fast": [10, 20], "slow": [50, 80], "rsi_period": [7, 14]}
+result = optimizer.optimize(EMARSIStrategy, grid, candles)
+walk_forward = optimizer.walk_forward(EMARSIStrategy, grid, candles,
+    train_size=2000, validation_size=500, step_size=500, anchored=False)
+comparison = StrategyComparator().compare([
+    (EMARSIStrategy, walk_forward.final_parameters), RSIStrategy
+], candles[:int(len(candles) * 0.8)])
+print(result.best_parameters, walk_forward.test_metrics, comparison.format_table())
+```
+
+`walk_forward` выбирает параметры отдельно в каждом train-окне, оценивает их на
+следующем validation-окне, затем повторно выбирает по всей истории до финального
+test. Test не участвует в выборе. `parameter_stability` показывает долю допустимых
+соседних конфигураций со score не ниже 80% baseline, если baseline положителен;
+это локальная эвристика, не проверка статистической значимости. Результаты
+сохраняются в `data/optimization/` и `data/comparisons/` (CSV и JSON).
+
 ## Historical Data Engine
 
 `HistoricalDataProvider` загружает исторические свечи Binance и кэширует их в
