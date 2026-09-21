@@ -5,3 +5,5 @@ numpy
 requests
 ta
 pytest
+streamlit
+reportlab

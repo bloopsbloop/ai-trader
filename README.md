@@ -174,3 +174,20 @@ this forward period: BTC 1h EMA `(10, 50)`, BTC 1h EMA+RSI `(20, 50, 7, 30, 70)`
 BTC 1h EMA+RSI+ATR `(20, 50, 7, 30, 70, 14, 2, 3)`, BTC 4h EMA+RSI
 `(10, 50, 7, 30, 70)`, ETH 1h EMA+RSI `(10, 50, 7, 30, 70)` and ETH 1h
 EMA+RSI+ATR `(10, 50, 7, 30, 70, 14, 2, 3)`.
+
+## Research Dashboard
+
+The local dashboard uses Streamlit because it provides an uncomplicated, read-only
+interface over the existing SQLite, CSV and JSON research artifacts. It does not
+connect to exchange accounts, use API keys, or place orders.
+
+```powershell
+python -m pip install -r requirements.txt
+streamlit run app/dashboard/dashboard.py
+```
+
+The dashboard includes paper-experiment performance, equity/drawdown/monthly-return
+charts, trades, optimizer results and heatmaps, walk-forward stability, research
+comparisons and Buy & Hold context. Each paper page can download CSV, JSON, HTML
+and PDF reports. Dashboard warnings (few trades, drawdown, overfitting diagnostics
+and negative expectancy) are prompts for investigation, not trading advice.

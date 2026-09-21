@@ -72,7 +72,7 @@ class PaperRunner:
             state["benchmark_entry"] = candle.close
         state["benchmark_equity"] = experiment.starting_balance * candle.close / state["benchmark_entry"]
         state["equity_peak"] = max(state["equity_peak"], equity)
-        state["equity_curve"].append({"time": candle.open_time.isoformat(), "equity": equity})
+        state["equity_curve"].append({"time": candle.open_time.isoformat(), "equity": equity, "cash": portfolio.balance})
         self._write_portfolio(state, portfolio)
         position = portfolio.position.quantity if portfolio.position else 0.0
         return f"{candle.open_time} {experiment.experiment_id[:8]} {experiment.symbol} {experiment.timeframe} close={candle.close:.2f} signal={signal.value} action={action} position={position:.8f} cash={portfolio.balance:.2f} equity={equity:.2f} realized={portfolio.realized_pnl:.2f}"
@@ -93,3 +93,4 @@ class PaperRunner:
         state["realized_pnl"] = portfolio.realized_pnl
         state["fees"] = portfolio.total_commissions
         state["position"] = portfolio.position.__dict__ if portfolio.position else None
+
