@@ -41,6 +41,17 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(order.rejection_reason, "Order exceeds the maximum position size")
         self.assertEqual(self.portfolio.balance, 1000.0)
 
+    def test_broker_applies_maker_commission_when_requested(self):
+        broker = Broker(
+            commission_rate=0.001,
+            maker_commission_rate=0.0002,
+            risk_manager=RiskManager(risk_percent=0.5, max_position_fraction=0.5),
+        )
+
+        order = broker.buy(self.portfolio, price=50000.0, amount=500.0, is_maker=True)
+
+        self.assertEqual(order.commission, 0.1)
+
 
 if __name__ == "__main__":
     unittest.main()
