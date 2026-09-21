@@ -149,3 +149,28 @@ calculation, so long-history EMA values are approximated by a rolling warm-up.
 
 Once final test results are inspected, treat this holdout as used. Any later
 parameter changes require a new, later untouched holdout for a fresh claim.
+
+## Forward paper trading
+
+Paper trading reads only Binance public closed candles. It has no API-key settings,
+no trading client and no path to Binance order endpoints. SQLite is used at
+`data/paper/paper.sqlite3`: it preserves experiment snapshots, trades and the last
+processed candle atomically across restarts.
+
+Create the six fixed forward experiments (1000 USDT each), then initialize them:
+
+```powershell
+python -m app.paper.run --create-initial
+python -m app.paper.run
+```
+
+Run one polling process with `python -m app.paper.run --loop --interval 300`.
+It processes each new closed candle once. To stop an experiment, call
+`PaperStorage().set_status(experiment_id, "STOPPED")`; to restore it, set it to
+`RUNNING`. Reports use `python -m app.paper.report <experiment_id>`.
+
+The fixed parameters come from M6.5 development train/validation selection before
+this forward period: BTC 1h EMA `(10, 50)`, BTC 1h EMA+RSI `(20, 50, 7, 30, 70)`,
+BTC 1h EMA+RSI+ATR `(20, 50, 7, 30, 70, 14, 2, 3)`, BTC 4h EMA+RSI
+`(10, 50, 7, 30, 70)`, ETH 1h EMA+RSI `(10, 50, 7, 30, 70)` and ETH 1h
+EMA+RSI+ATR `(10, 50, 7, 30, 70, 14, 2, 3)`.
