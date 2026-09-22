@@ -141,6 +141,14 @@ class PaperStorage:
         keys = ("id", "reason", "status", "retries", "message_id", "error", "created_at", "delivered_at")
         return [dict(zip(keys, row)) for row in rows]
 
+    def notification_statuses(self, item_ids):
+        if not item_ids:
+            return {}
+        placeholders = ",".join("?" for _ in item_ids)
+        with self._connection() as connection:
+            rows = connection.execute(f"SELECT id, status FROM notification_queue WHERE id IN ({placeholders})", tuple(item_ids)).fetchall()
+        return dict(rows)
+
     def log_recovery(self, reason, candles_recovered, duration_seconds, status="COMPLETED"):
         from datetime import datetime, timezone
         with self._connection() as connection:

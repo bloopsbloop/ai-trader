@@ -15,6 +15,13 @@ class TelegramNotifier:
         item_id = self.storage.queue_notification(text, reason)
         return self.flush_queue(target_id=item_id)
 
+    def send_many(self, messages, reason="notification"):
+        item_ids = [self.storage.queue_notification(message, f"{reason}:{index}/{len(messages)}")
+                    for index, message in enumerate(messages, 1)]
+        self.flush_queue()
+        statuses = self.storage.notification_statuses(item_ids)
+        return all(statuses.get(item_id) == "DELIVERED" for item_id in item_ids)
+
     def flush_queue(self, target_id=None):
         delivered = False
         target_delivered = False

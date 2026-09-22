@@ -11,6 +11,7 @@ from app.telegram.formatter import trade_message
 from app.telegram.notifier import TelegramNotifier
 from app.telegram.reports import report_data
 from app.telegram.settings import TelegramSettings
+from app.telegram.chunking import SAFE_TELEGRAM_TEXT_LENGTH, chunk_message
 
 
 class Response:
@@ -179,3 +180,41 @@ def test_recovery_history_persists():
         storage = PaperStorage(Path(directory) / "paper.sqlite3")
         storage.log_recovery("outage", 3, 0.1)
         assert PaperStorage(storage.path).recovery_history()[0]["candles_recovered"] == 3
+
+
+def test_short_report_is_one_message():
+    assert chunk_message("short report", "Daily Report") == ["short report"]
+
+
+def test_long_report_is_ordered_and_keeps_every_experiment_block():
+    blocks = [f"Experiment {index}\n" + (f"metric-{index} " * 80) for index in range(30)]
+    chunks = chunk_message("Summary\n\nBatch 1\n\n" + "\n\n".join(blocks), "Daily Report")
+    assert len(chunks) > 1
+    assert all(len(chunk) <= SAFE_TELEGRAM_TEXT_LENGTH for chunk in chunks)
+    assert [chunk.splitlines()[0] for chunk in chunks] == [f"Daily Report ({index}/{len(chunks)})" for index in range(1, len(chunks) + 1)]
+    combined = "\n".join(chunks)
+    assert all(f"Experiment {index}\n" in combined for index in range(30))
+
+
+def test_multipart_queue_preserves_order_when_middle_chunk_temarily_fails():
+    class MiddleFailureClient:
+        def __init__(self):
+            self.calls = []
+            self.failed = False
+            self.last_message_id = None
+        def send_message(self, text):
+            self.calls.append(text)
+            if text == "part 2" and not self.failed:
+                self.failed = True
+                return False, "temporary network failure"
+            self.last_message_id = len(self.calls)
+            return True, None
+    with TemporaryDirectory() as directory:
+        storage = PaperStorage(Path(directory) / "paper.sqlite3")
+        client = MiddleFailureClient()
+        notifier = TelegramNotifier(storage, TelegramSettings("token", "chat", retry_count=1), client)
+        assert not notifier.send_many(["part 1", "part 2", "part 3"], "report")
+        assert [item["text"] for item in storage.pending_notifications()] == ["part 2", "part 3"]
+        assert notifier.flush_queue()
+        assert client.calls == ["part 1", "part 2", "part 2", "part 3"]
+        assert all(row["status"] == "DELIVERED" for row in storage.notification_queue())
