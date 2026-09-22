@@ -9,6 +9,7 @@ from app.telegram.diagnostics import format_checks, startup_checks
 
 
 def main():
+    started_at = time.monotonic()
     parser = argparse.ArgumentParser(description="Forward paper trading on closed public Binance candles")
     parser.add_argument("--create-initial", action="store_true")
     parser.add_argument("--loop", action="store_true")
@@ -21,8 +22,10 @@ def main():
             print(f"Created {experiment.experiment_id} {experiment.symbol} {experiment.timeframe} {experiment.strategy}")
     runner = PaperRunner(storage, notifier=notifier)
     print(format_checks(startup_checks(storage, runner.market_data, notifier)))
+    print(f"Startup diagnostics completed in {time.monotonic() - started_at:.2f}s")
     while True:
         try:
+            notifier.flush_queue()
             for message in runner.run_once():
                 print(message)
         except Exception:

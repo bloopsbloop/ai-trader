@@ -114,3 +114,31 @@ def test_expanded_reports_and_startup_checks_are_readable():
         assert "Cash:" in text and "Position value:" in text and "Unrealized PnL:" in text
         checks = startup_checks(storage)
         assert checks["SQLite"] == "OK" and checks["Paper storage"] == "OK"
+
+
+def test_notification_queue_retries_and_preserves_delivery_audit():
+    class FlakyClient:
+        def __init__(self):
+            self.calls = 0
+            self.last_message_id = None
+        def send_message(self, text):
+            self.calls += 1
+            if self.calls == 1:
+                return False, "offline"
+            self.last_message_id = 42
+            return True, None
+    with TemporaryDirectory() as directory:
+        storage = PaperStorage(Path(directory) / "paper.sqlite3")
+        notifier = TelegramNotifier(storage, TelegramSettings("token", "chat", retry_count=1), FlakyClient())
+        assert not notifier.send("queued")
+        assert len(storage.pending_notifications()) == 1
+        assert notifier.flush_queue()
+        record = storage.notification_queue()[0]
+        assert record["status"] == "DELIVERED" and record["message_id"] == "42" and record["retries"] == 1
+
+
+def test_recovery_history_persists():
+    with TemporaryDirectory() as directory:
+        storage = PaperStorage(Path(directory) / "paper.sqlite3")
+        storage.log_recovery("outage", 3, 0.1)
+        assert PaperStorage(storage.path).recovery_history()[0]["candles_recovered"] == 3

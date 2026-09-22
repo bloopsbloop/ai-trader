@@ -15,12 +15,13 @@ def _dataframe(rows):
 
 def _metrics(report):
     state = report["state"]
+    insufficient = "Not enough data" if report["trades"] < 2 else None
     return {
         "Cash": round(state["cash"], 2), "Position Value": round(report["equity"] - state["cash"], 2), "Equity": round(report["equity"], 2),
         "Realized PnL": round(state["realized_pnl"], 2), "Open position": "Yes" if state["position"] else "No",
-        "Trades": report["trades"], "Win rate": round(report["win_rate"], 2),
-        "Profit factor": report["profit_factor"], "Sharpe": round(report["sharpe"], 2),
-        "Max drawdown": round(report["max_drawdown"], 2), "Expectancy": round(report["expectancy"], 2),
+        "Trades": report["trades"], "Win rate": insufficient or round(report["win_rate"], 2),
+        "Profit factor": insufficient or report["profit_factor"], "Sharpe": insufficient or round(report["sharpe"], 2),
+        "Max drawdown": round(report["max_drawdown"], 2), "Expectancy": insufficient or round(report["expectancy"], 2),
     }
 
 
@@ -113,27 +114,38 @@ def comparison_page(st):
 
 def overview_page(st):
     storage = PaperStorage()
-    _metric_cards(st, {"Paper Experiments": len(storage.active_experiments()), "Backtests": len(load_research_rows()), "Optimizer Results": len(optimizer_rows()), "Research Reports": len(list((project_root() / "data" / "research").glob("*_*/report.json")))})
-    states = [state for _, state in storage.active_experiments()]
+    reports = [build_report(experiment.experiment_id, storage) for experiment, _ in storage.active_experiments()]
+    states = [report["state"] for report in reports]
+    _metric_cards(st, {"Total Equity": round(sum(report["equity"] for report in reports), 2), "Total Cash": round(sum(state["cash"] for state in states), 2), "Position Value": round(sum(report["equity"] - state["cash"] for report, state in zip(reports, states)), 2), "Unrealized PnL": round(sum(report["unrealized_pnl"] for report in reports), 2), "Realized PnL": round(sum(state["realized_pnl"] for state in states), 2), "Active Positions": sum(bool(state["position"]) for state in states), "Trades Today": sum(report["trades"] for report in reports), "Queued Notifications": len(storage.pending_notifications())})
     last_candle = max((state.get("last_processed_candle") or "" for state in states), default="—")
     telegram = TelegramNotifier(storage).status()
     st.subheader("System Status")
-    _metric_cards(st, {"Telegram": "Configured" if telegram["configured"] else "Not configured", "Runner": "Experiments active" if states else "No active experiments", "SQLite": "OK", "Last candle": last_candle})
+    _metric_cards(st, {"Telegram": telegram["health"], "Runner": "Experiments active" if states else "No active experiments", "SQLite": "Connected", "Last candle": last_candle})
     st.caption("All dashboard data is read-only. It never places orders or reads exchange credentials.")
 
 
 def telegram_page(st):
     status = TelegramNotifier(PaperStorage()).status()
     st.subheader("Telegram Status")
-    st.metric("Configuration", "Configured" if status["configured"] else "Not configured")
+    st.metric("Health", status["health"])
     st.write({"Last successful notification": status["last_success"], "Last notification error": status["last_error"]})
+
+
+def telegram_queue_page(st):
+    st.subheader("Telegram Queue")
+    st.dataframe(_dataframe(PaperStorage().notification_queue()), use_container_width=True)
+
+
+def recovery_page(st):
+    st.subheader("Recovery History")
+    st.dataframe(_dataframe(PaperStorage().recovery_history()), use_container_width=True)
 
 
 def main():
     import streamlit as st
     st.set_page_config(page_title="AI Trader Research Dashboard", layout="wide")
     st.title("AI Trader — Research Dashboard")
-    pages = {"Overview": overview_page, "Paper Trading": paper_page, "Optimizer": optimizer_page, "Research Reports": research_page, "Strategy Comparison": comparison_page, "Telegram Status": telegram_page}
+    pages = {"Overview": overview_page, "Paper Trading": paper_page, "Optimizer": optimizer_page, "Research Reports": research_page, "Strategy Comparison": comparison_page, "Telegram Status": telegram_page, "Telegram Queue": telegram_queue_page, "Recovery History": recovery_page}
     pages[st.sidebar.radio("Page", list(pages))](st)
 
 

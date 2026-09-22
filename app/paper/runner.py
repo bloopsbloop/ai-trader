@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import monotonic
 
 from app.core.portfolio import Portfolio
 from app.models.position import Position
@@ -40,12 +41,17 @@ class PaperRunner:
             self.storage.save_state(experiment.experiment_id, state)
             return [f"{latest.open_time} {experiment.experiment_id[:8]} initialized; next closed candle starts forward evaluation"]
         new_candles = [candle for candle in candles if last is None or candle.open_time.isoformat() > last]
+        started = monotonic()
         messages = []
         for candle in new_candles:
             messages.append(self._process_candle(experiment, state, candles, candle))
             state["last_processed_candle"] = candle.open_time.isoformat()
         if new_candles:
             self.storage.save_state(experiment.experiment_id, state)
+            if len(new_candles) > 1:
+                self.storage.log_recovery("missed closed candles", len(new_candles), monotonic() - started)
+                if self.notifier is not None:
+                    self.notifier.alert("recovery_completed", f"Recovery completed: {len(new_candles)} closed candles processed.")
         return messages
 
     def _process_candle(self, experiment, state, candles, candle):

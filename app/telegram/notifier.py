@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+import time
 
 from app.telegram.client import TelegramClient
 from app.telegram.formatter import trade_message
@@ -11,19 +11,39 @@ class TelegramNotifier:
         self.settings = settings or TelegramSettings.from_environment()
         self.client = client or TelegramClient(self.settings)
 
-    def send(self, text):
-        success, error = self.client.send_message(text)
-        self.storage.notification_result(success, error)
-        return success
+    def send(self, text, reason="notification"):
+        self.storage.queue_notification(text, reason)
+        return self.flush_queue()
+
+    def flush_queue(self):
+        delivered = False
+        for item in self.storage.pending_notifications():
+            success, error = False, None
+            for attempt in range(self.settings.retry_count):
+                success, error = self.client.send_message(item["text"])
+                if success:
+                    break
+                if attempt + 1 < self.settings.retry_count:
+                    time.sleep(self.settings.retry_backoff_seconds * (2 ** attempt))
+            self.storage.notification_result(success, error)
+            if success:
+                self.storage.complete_notification(item["id"], self.client.last_message_id)
+                delivered = True
+            else:
+                self.storage.retry_notification(item["id"], error)
+                break
+        return delivered
 
     def notify_trade(self, experiment, order, state, equity, entry=None):
-        return self.send(trade_message(experiment, order, state, equity, entry))
+        return self.send(trade_message(experiment, order, state, equity, entry), "trade")
 
     def alert(self, key, text):
         if not self.storage.claim_alert(key, self.settings.alert_cooldown_seconds):
             return False
-        return self.send("⚠️ PAPER ALERT\n\n" + text)
+        return self.send("⚠️ PAPER ALERT\n\n" + text, key)
 
     def status(self):
         state = self.storage.notification_state()
-        return {"configured": self.settings.configured, "last_success": state.get("last_success"), "last_error": state.get("last_error")}
+        pending = len(self.storage.pending_notifications())
+        health = "Connected" if state.get("last_success") and not pending else ("Queue pending" if pending else ("Configured but unreachable" if self.settings.configured else "Not configured"))
+        return {"configured": self.settings.configured, "health": health, "last_success": state.get("last_success"), "last_error": state.get("last_error"), "pending": pending}

@@ -6,6 +6,7 @@ class TelegramClient:
     def __init__(self, settings, session=requests):
         self.settings = settings
         self.session = session
+        self.last_message_id = None
 
     def send_message(self, text):
         if not self.settings.configured:
@@ -15,6 +16,7 @@ class TelegramClient:
             data = response.json()
             if not response.ok or not data.get("ok"):
                 return False, "Telegram API rejected notification"
+            self.last_message_id = data.get("result", {}).get("message_id")
             return True, None
         except (requests.RequestException, ValueError):
             return False, "Telegram network request failed"

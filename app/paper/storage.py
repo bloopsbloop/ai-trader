@@ -24,6 +24,15 @@ class PaperStorage:
                 CREATE TABLE IF NOT EXISTS notification_state (
                     key TEXT PRIMARY KEY, value TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS notification_queue (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT NOT NULL, reason TEXT NOT NULL,
+                    status TEXT NOT NULL, retries INTEGER NOT NULL DEFAULT 0, message_id TEXT,
+                    error TEXT, created_at TEXT NOT NULL, delivered_at TEXT
+                );
+                CREATE TABLE IF NOT EXISTS recovery_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, reason TEXT NOT NULL,
+                    candles_recovered INTEGER NOT NULL, duration_seconds REAL NOT NULL, status TEXT NOT NULL
+                );
             """)
 
     def _connect(self):
@@ -84,6 +93,41 @@ class PaperStorage:
                 connection.execute("DELETE FROM notification_state WHERE key='last_error'")
             else:
                 connection.execute("INSERT OR REPLACE INTO notification_state VALUES (?, ?)", ("last_error", error or "Notification failed"))
+
+    def queue_notification(self, text, reason="notification"):
+        from datetime import datetime, timezone
+        with self._connection() as connection:
+            connection.execute("INSERT INTO notification_queue (text, reason, status, created_at) VALUES (?, ?, 'PENDING', ?)", (text, reason, datetime.now(timezone.utc).isoformat()))
+
+    def pending_notifications(self):
+        with self._connection() as connection:
+            rows = connection.execute("SELECT id, text, reason, retries FROM notification_queue WHERE status='PENDING' ORDER BY id").fetchall()
+        return [dict(zip(("id", "text", "reason", "retries"), row)) for row in rows]
+
+    def complete_notification(self, item_id, message_id):
+        from datetime import datetime, timezone
+        with self._connection() as connection:
+            connection.execute("UPDATE notification_queue SET status='DELIVERED', message_id=?, delivered_at=?, error=NULL WHERE id=?", (str(message_id or ""), datetime.now(timezone.utc).isoformat(), item_id))
+
+    def retry_notification(self, item_id, error):
+        with self._connection() as connection:
+            connection.execute("UPDATE notification_queue SET retries=retries+1, error=? WHERE id=?", (error, item_id))
+
+    def notification_queue(self, limit=100):
+        with self._connection() as connection:
+            rows = connection.execute("SELECT id, reason, status, retries, message_id, error, created_at, delivered_at FROM notification_queue ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+        keys = ("id", "reason", "status", "retries", "message_id", "error", "created_at", "delivered_at")
+        return [dict(zip(keys, row)) for row in rows]
+
+    def log_recovery(self, reason, candles_recovered, duration_seconds, status="COMPLETED"):
+        from datetime import datetime, timezone
+        with self._connection() as connection:
+            connection.execute("INSERT INTO recovery_log (timestamp, reason, candles_recovered, duration_seconds, status) VALUES (?, ?, ?, ?, ?)", (datetime.now(timezone.utc).isoformat(), reason, candles_recovered, duration_seconds, status))
+
+    def recovery_history(self):
+        with self._connection() as connection:
+            rows = connection.execute("SELECT timestamp, reason, candles_recovered, duration_seconds, status FROM recovery_log ORDER BY id DESC").fetchall()
+        return [dict(zip(("timestamp", "reason", "candles_recovered", "duration_seconds", "status"), row)) for row in rows]
 
     def claim_alert(self, key, cooldown_seconds):
         from datetime import datetime, timezone, timedelta

@@ -11,6 +11,8 @@ class TelegramSettings:
     alert_cooldown_seconds: int = 3600
     negative_expectancy_minimum_trades: int = 10
     drawdown_threshold: float = 20.0
+    retry_count: int = 3
+    retry_backoff_seconds: float = 0.1
 
     @property
     def configured(self):

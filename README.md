@@ -223,3 +223,14 @@ available closed-candle history again and processes every candle after that chec
 in chronological order. A Telegram alert is best-effort and cooldown-protected; it
 cannot block recovery or alter virtual trading logic. Startup prints SQLite, paper
 storage, history, Telegram and Binance diagnostics.
+
+## Reliability Monitoring
+
+Telegram notifications are written to the local SQLite queue before delivery. The
+runner retries with exponential backoff and drains queued messages in chronological
+order after connectivity returns. The dashboard includes **System Status**,
+**Telegram Queue**, and **Recovery History** pages. Runner startup prints elapsed
+health diagnostics for Internet, Binance, SQLite, Telegram, history and recovery.
+
+If Telegram is unavailable, check the queue and the token/chat ID; no paper trade or
+recovery step is discarded because notification delivery fails.
