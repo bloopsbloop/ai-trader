@@ -14,8 +14,9 @@ class TelegramClient:
         try:
             response = self.session.post(f"https://api.telegram.org/bot{self.settings.token}/sendMessage", json={"chat_id": self.settings.chat_id, "text": text}, timeout=self.settings.timeout)
             data = response.json()
-            if not response.ok or not data.get("ok"):
-                return False, "Telegram API rejected notification"
+            if data.get("ok") is not True:
+                description = data.get("description") or "Unknown Telegram API error"
+                return False, f"Telegram API rejected notification: {description}"
             self.last_message_id = data.get("result", {}).get("message_id")
             return True, None
         except (requests.RequestException, ValueError):
@@ -33,6 +34,10 @@ class TelegramClient:
         try:
             with Path(path).open("rb") as file:
                 response = self.session.post(f"https://api.telegram.org/bot{self.settings.token}/{method}", data={"chat_id": self.settings.chat_id}, files={field: file}, timeout=self.settings.timeout)
-            return (True, None) if response.ok and response.json().get("ok") else (False, "Telegram API rejected notification")
+            data = response.json()
+            if data.get("ok") is True:
+                self.last_message_id = data.get("result", {}).get("message_id")
+                return True, None
+            return False, f"Telegram API rejected notification: {data.get('description') or 'Unknown Telegram API error'}"
         except (OSError, requests.RequestException, ValueError):
             return False, "Telegram network request failed"

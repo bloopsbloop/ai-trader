@@ -114,7 +114,8 @@ class PaperStorage:
     def queue_notification(self, text, reason="notification"):
         from datetime import datetime, timezone
         with self._connection() as connection:
-            connection.execute("INSERT INTO notification_queue (text, reason, status, created_at) VALUES (?, ?, 'PENDING', ?)", (text, reason, datetime.now(timezone.utc).isoformat()))
+            cursor = connection.execute("INSERT INTO notification_queue (text, reason, status, created_at) VALUES (?, ?, 'PENDING', ?)", (text, reason, datetime.now(timezone.utc).isoformat()))
+            return cursor.lastrowid
 
     def pending_notifications(self):
         with self._connection() as connection:
@@ -129,6 +130,10 @@ class PaperStorage:
     def retry_notification(self, item_id, error):
         with self._connection() as connection:
             connection.execute("UPDATE notification_queue SET retries=retries+1, error=? WHERE id=?", (error, item_id))
+
+    def fail_notification(self, item_id, error):
+        with self._connection() as connection:
+            connection.execute("UPDATE notification_queue SET status='FAILED', retries=retries+1, error=? WHERE id=?", (error, item_id))
 
     def notification_queue(self, limit=100):
         with self._connection() as connection:

@@ -12,11 +12,12 @@ class TelegramNotifier:
         self.client = client or TelegramClient(self.settings)
 
     def send(self, text, reason="notification"):
-        self.storage.queue_notification(text, reason)
-        return self.flush_queue()
+        item_id = self.storage.queue_notification(text, reason)
+        return self.flush_queue(target_id=item_id)
 
-    def flush_queue(self):
+    def flush_queue(self, target_id=None):
         delivered = False
+        target_delivered = False
         for item in self.storage.pending_notifications():
             success, error = False, None
             for attempt in range(self.settings.retry_count):
@@ -29,10 +30,13 @@ class TelegramNotifier:
             if success:
                 self.storage.complete_notification(item["id"], self.client.last_message_id)
                 delivered = True
+                target_delivered = target_delivered or item["id"] == target_id
+            elif error and error.startswith("Telegram API rejected notification:"):
+                self.storage.fail_notification(item["id"], error)
             else:
                 self.storage.retry_notification(item["id"], error)
                 break
-        return delivered
+        return target_delivered if target_id is not None else delivered
 
     def notify_trade(self, experiment, order, state, equity, entry=None):
         return self.send(trade_message(experiment, order, state, equity, entry), "trade")

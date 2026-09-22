@@ -22,6 +22,43 @@ class Session:
     def post(self, *args, **kwargs): return Response()
 
 
+def test_telegram_json_ok_true_is_success_even_without_http_ok_flag():
+    class JsonSuccessResponse:
+        def json(self):
+            return {"ok": True, "result": {"message_id": 123}}
+    class JsonSuccessSession:
+        def post(self, *args, **kwargs):
+            return JsonSuccessResponse()
+    client = TelegramClient(TelegramSettings("token", "chat"), JsonSuccessSession())
+    assert client.send_message("hello") == (True, None)
+    assert client.last_message_id == 123
+
+
+def test_telegram_json_rejection_returns_description():
+    class RejectedResponse:
+        def json(self):
+            return {"ok": False, "error_code": 400, "description": "Bad Request: chat not found"}
+    class RejectedSession:
+        def post(self, *args, **kwargs):
+            return RejectedResponse()
+    success, error = TelegramClient(TelegramSettings("token", "chat"), RejectedSession()).send_message("hello")
+    assert not success
+    assert "Bad Request: chat not found" in error
+
+
+def test_permanent_rejection_is_persisted_as_failed_not_pending():
+    class RejectedClient:
+        last_message_id = None
+        def send_message(self, text):
+            return False, "Telegram API rejected notification: forbidden"
+    with TemporaryDirectory() as directory:
+        storage = PaperStorage(Path(directory) / "paper.sqlite3")
+        notifier = TelegramNotifier(storage, TelegramSettings("token", "chat", retry_count=1), RejectedClient())
+        assert not notifier.send("rejected")
+        assert storage.pending_notifications() == []
+        assert storage.notification_queue()[0]["status"] == "FAILED"
+
+
 def test_formatter_and_client_do_not_expose_token():
     settings = TelegramSettings("secret-token", "123")
     success, error = TelegramClient(settings, Session()).send_message("hello")
