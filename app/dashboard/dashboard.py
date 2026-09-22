@@ -141,11 +141,71 @@ def recovery_page(st):
     st.dataframe(_dataframe(PaperStorage().recovery_history()), use_container_width=True)
 
 
+def _experiment_rows(storage):
+    rows = []
+    for experiment, state in storage.all_experiments():
+        report = build_report(experiment.experiment_id, storage)
+        rows.append({"Batch": experiment.batch_name, "Batch ID": experiment.batch_id, "Symbol": experiment.symbol,
+                     "Timeframe": experiment.timeframe, "Strategy": experiment.strategy, "Equity": report["equity"],
+                     "Return %": (report["equity"] / experiment.starting_balance - 1) * 100,
+                     "Realized PnL": state["realized_pnl"], "Unrealized PnL": report["unrealized_pnl"],
+                     "Trades": report["trades"], "Max DD": report["max_drawdown"], "Status": experiment.status.value,
+                     "Started": experiment.created_at, "Open Position": bool(state["position"]), "Fees": state["fees"]})
+    return rows
+
+
+def _filtered_rows(st, rows):
+    filters = (("Batch", "All batches"), ("Symbol", "All symbols"), ("Strategy", "All strategies"),
+               ("Timeframe", "All timeframes"), ("Status", "All statuses"))
+    for column, all_label in filters:
+        selected = st.sidebar.selectbox(column, [all_label] + sorted({row[column] for row in rows}))
+        if selected != all_label:
+            rows = [row for row in rows if row[column] == selected]
+    return rows
+
+
+def leaderboard_page(st):
+    st.subheader("Experiment Leaderboard")
+    st.caption("Descriptive sorting only. Independent virtual experiment balances.")
+    st.dataframe(_dataframe(_filtered_rows(st, _experiment_rows(PaperStorage()))), use_container_width=True)
+
+
+def batch_comparison_page(st):
+    rows = _experiment_rows(PaperStorage())
+    result = []
+    for batch in sorted({row["Batch"] for row in rows}):
+        selected = [row for row in rows if row["Batch"] == batch]
+        result.append({"Batch": batch, "Experiments": len(selected), "Active positions": sum(row["Open Position"] for row in selected),
+                       "Closed trades": sum(row["Trades"] for row in selected), "Total equity": sum(row["Equity"] for row in selected),
+                       "Realized PnL": sum(row["Realized PnL"] for row in selected), "Unrealized PnL": sum(row["Unrealized PnL"] for row in selected),
+                       "Fees": sum(row["Fees"] for row in selected), "Average drawdown": sum(row["Max DD"] for row in selected) / len(selected),
+                       "Profitable": sum(row["Return %"] > 0 for row in selected), "Losing": sum(row["Return %"] < 0 for row in selected)})
+    st.subheader("Batch Comparison")
+    st.caption("Independent virtual experiment balances; totals are research summaries, not one real portfolio.")
+    st.dataframe(_dataframe(result), use_container_width=True)
+
+
+def strategy_matrix_page(st):
+    rows = _experiment_rows(PaperStorage())
+    metric = st.selectbox("Metric", ["Return %", "Trades", "Max DD", "Status"])
+    frame = _dataframe(rows)
+    frame["Market"] = frame["Symbol"] + " " + frame["Timeframe"]
+    st.dataframe(frame.pivot_table(index="Strategy", columns="Market", values=metric, aggfunc="first"), use_container_width=True)
+
+
+def activity_page(st):
+    st.subheader("Recent Signals")
+    st.dataframe(_dataframe(PaperStorage().recent_signal_events(100)), use_container_width=True)
+
+
 def main():
     import streamlit as st
     st.set_page_config(page_title="AI Trader Research Dashboard", layout="wide")
     st.title("AI Trader — Research Dashboard")
-    pages = {"Overview": overview_page, "Paper Trading": paper_page, "Optimizer": optimizer_page, "Research Reports": research_page, "Strategy Comparison": comparison_page, "Telegram Status": telegram_page, "Telegram Queue": telegram_queue_page, "Recovery History": recovery_page}
+    pages = {"Overview": overview_page, "Paper Trading": paper_page, "Batch Comparison": batch_comparison_page,
+             "Experiment Leaderboard": leaderboard_page, "Strategy Matrix": strategy_matrix_page, "Recent Signals": activity_page,
+             "Optimizer": optimizer_page, "Research Reports": research_page, "Strategy Comparison": comparison_page,
+             "Telegram Status": telegram_page, "Telegram Queue": telegram_queue_page, "Recovery History": recovery_page}
     pages[st.sidebar.radio("Page", list(pages))](st)
 
 

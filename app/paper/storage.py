@@ -33,10 +33,23 @@ class PaperStorage:
                     id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, reason TEXT NOT NULL,
                     candles_recovered INTEGER NOT NULL, duration_seconds REAL NOT NULL, status TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS signal_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT NOT NULL, experiment_id TEXT NOT NULL,
+                    batch_id TEXT NOT NULL, symbol TEXT NOT NULL, timeframe TEXT NOT NULL,
+                    strategy TEXT NOT NULL, signal TEXT NOT NULL, action TEXT NOT NULL, price REAL NOT NULL
+                );
             """)
 
     def _connect(self):
         return sqlite3.connect(self.path)
+
+    def backup(self, name="paper_backup"):
+        import shutil
+        target = self.path.parent / "backups" / f"{name}.sqlite3"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if self.path.exists() and not target.exists():
+            shutil.copy2(self.path, target)
+        return target
 
     @contextmanager
     def _connection(self):
@@ -60,6 +73,10 @@ class PaperStorage:
                                (experiment.experiment_id, json.dumps(experiment.as_dict()), experiment.status.value,
                                 json.dumps(state), experiment.created_at))
         return experiment
+
+    def create_experiment_if_missing(self, experiment):
+        existing = self.get_experiment(experiment.experiment_id)
+        return existing[0] if existing else self.create_experiment(experiment)
 
     def get_experiment(self, experiment_id):
         with self._connection() as connection:
@@ -158,3 +175,13 @@ class PaperStorage:
         with self._connection() as connection:
             rows = connection.execute("SELECT timestamp, side, price, quantity, commission, realized_pnl, candle_open_time FROM trades WHERE experiment_id=? ORDER BY timestamp", (experiment_id,)).fetchall()
         return [dict(zip(("timestamp", "side", "price", "quantity", "commission", "realized_pnl", "candle_open_time"), row)) for row in rows]
+
+    def add_signal_event(self, experiment, timestamp, signal, action, price):
+        with self._connection() as connection:
+            connection.execute("INSERT INTO signal_events (timestamp, experiment_id, batch_id, symbol, timeframe, strategy, signal, action, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (timestamp, experiment.experiment_id, experiment.batch_id, experiment.symbol, experiment.timeframe, experiment.strategy, signal, action, price))
+
+    def recent_signal_events(self, limit=100):
+        with self._connection() as connection:
+            rows = connection.execute("SELECT timestamp, batch_id, symbol, timeframe, strategy, signal, action, price FROM signal_events ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+        keys = ("timestamp", "batch", "symbol", "timeframe", "strategy", "signal", "action", "price")
+        return [dict(zip(keys, row)) for row in rows]

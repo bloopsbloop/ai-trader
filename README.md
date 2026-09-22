@@ -234,3 +234,19 @@ health diagnostics for Internet, Binance, SQLite, Telegram, history and recovery
 
 If Telegram is unavailable, check the queue and the token/chat ID; no paper trade or
 recovery step is discarded because notification delivery fails.
+
+## Batch 2 Multi-Asset Strategy Lab
+
+Batch 1 remains the six baseline control experiments. Batch 2 adds 30 independent
+paper experiments across BTC, ETH, SOL, BNB, XRP, LINK and DOGE on `15m`, `1h` and
+`4h`. Every experiment has its own 1000 USDT virtual balance; balances are never
+combined as a real portfolio. Strategies include Bollinger mean reversion, Donchian
+breakout, MACD trend, Supertrend, ADX+EMA trend and RSI mean reversion.
+
+Run the historical candidate evaluation with `python -m app.research.batch2`. It uses
+only 2023-01-01 through 2025-12-31, with chronological 70/30 train-validation and no
+reuse of the viewed M6.5 final holdout. Results are written to `data/research/batch_2/`.
+After reviewing that output, initialize the idempotent paper batch with
+`python -m app.paper.run --create-batch-2`. A repeat-safe SQLite backup is placed in
+`data/paper/backups/`, and the exported configuration is stored at
+`data/paper/batch_2_experiments.json`.

@@ -20,4 +20,4 @@ def startup_checks(storage=None, market_data=None, notifier=None):
 
 
 def format_checks(checks):
-    return "\n".join(f"{'✓' if value in {'OK', 'Connected', 'configured'} else '!' } {name}: {value}" for name, value in checks.items())
+    return "\n".join(f"{'[OK]' if value in {'OK', 'Connected', 'configured'} else '[!]'} {name}: {value}" for name, value in checks.items())

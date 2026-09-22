@@ -7,7 +7,8 @@ def money(value):
 
 def trade_message(experiment, order, state, equity, entry=None):
     title = "🟢 PAPER BUY" if order.side.value == "BUY" else "🔴 PAPER SELL"
-    lines = [title, "", f"Experiment: {experiment.symbol} {experiment.timeframe} {experiment.strategy}"]
+    lines = [title, "", f"Batch: {experiment.batch_name}", f"Strategy: {experiment.strategy}",
+             f"Symbol: {experiment.symbol}", f"Timeframe: {experiment.timeframe}"]
     if entry is not None:
         lines.append(f"Entry: {money(entry['price'])}")
     lines += [f"Price: {money(order.price)}", f"Position size: {money(order.price * order.quantity)}"]

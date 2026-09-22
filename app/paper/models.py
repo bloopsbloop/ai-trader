@@ -27,6 +27,8 @@ class PaperExperiment:
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     status: ExperimentStatus = ExperimentStatus.RUNNING
     parameter_origin: str = "M6.5 development train/validation selection before forward experiment"
+    batch_id: str = "batch_1"
+    batch_name: str = "Baseline Control"
 
     def __post_init__(self):
         object.__setattr__(self, "strategy_parameters", MappingProxyType(dict(self.strategy_parameters)))
@@ -37,4 +39,5 @@ class PaperExperiment:
                 "maker_commission": self.maker_commission, "taker_commission": self.taker_commission,
                 "slippage": self.slippage, "position_size": self.position_size,
                 "max_position_fraction": self.max_position_fraction, "experiment_id": self.experiment_id,
-                "created_at": self.created_at, "status": self.status.value, "parameter_origin": self.parameter_origin}
+                "created_at": self.created_at, "status": self.status.value, "parameter_origin": self.parameter_origin,
+                "batch_id": self.batch_id, "batch_name": self.batch_name}

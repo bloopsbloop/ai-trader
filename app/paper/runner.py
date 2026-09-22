@@ -13,9 +13,19 @@ from app.strategies.ema_strategy import EMAStrategy
 from app.strategies.rsi_strategy import RSIStrategy
 from app.strategies.ema_rsi_strategy import EMARSIStrategy
 from app.strategies.ema_rsi_atr_strategy import EMARSIATRStrategy
+from app.strategies.bollinger_mean_reversion import BollingerMeanReversionStrategy
+from app.strategies.donchian_breakout import DonchianBreakoutStrategy
+from app.strategies.macd_trend import MACDTrendStrategy
+from app.strategies.supertrend_strategy import SupertrendStrategy
+from app.strategies.adx_ema_trend import ADXEMATrendStrategy
+from app.strategies.rsi_mean_reversion import RSIMeanReversionStrategy
 
 
-STRATEGIES = {strategy.__name__: strategy for strategy in (EMAStrategy, RSIStrategy, EMARSIStrategy, EMARSIATRStrategy)}
+STRATEGIES = {strategy.__name__: strategy for strategy in (
+    EMAStrategy, RSIStrategy, EMARSIStrategy, EMARSIATRStrategy,
+    BollingerMeanReversionStrategy, DonchianBreakoutStrategy, MACDTrendStrategy,
+    SupertrendStrategy, ADXEMATrendStrategy, RSIMeanReversionStrategy,
+)}
 
 
 class PaperRunner:
@@ -23,15 +33,21 @@ class PaperRunner:
         self.storage = storage or PaperStorage()
         self.market_data = market_data or PublicMarketData()
         self.notifier = notifier
+        self._strategies = {}
 
     def run_once(self):
         messages = []
+        groups = {}
         for experiment, state in self.storage.active_experiments():
-            messages.extend(self.process(experiment, state))
+            groups.setdefault((experiment.symbol, experiment.timeframe), []).append((experiment, state))
+        for (symbol, timeframe), experiments in groups.items():
+            candles = self.market_data.closed_candles(symbol, timeframe)
+            for experiment, state in experiments:
+                messages.extend(self.process(experiment, state, candles))
         return messages
 
-    def process(self, experiment, state):
-        candles = self.market_data.closed_candles(experiment.symbol, experiment.timeframe)
+    def process(self, experiment, state, candles=None):
+        candles = candles if candles is not None else self.market_data.closed_candles(experiment.symbol, experiment.timeframe)
         last = state["last_processed_candle"]
         if last is None and candles:
             latest = candles[-1]
@@ -58,7 +74,7 @@ class PaperRunner:
         portfolio = self._portfolio(experiment, state)
         broker = PaperBroker(experiment.maker_commission, experiment.taker_commission, experiment.slippage,
                              experiment.position_size, experiment.max_position_fraction)
-        strategy = STRATEGIES[experiment.strategy](**experiment.strategy_parameters)
+        strategy = self._strategies.setdefault(experiment.experiment_id, STRATEGIES[experiment.strategy](**experiment.strategy_parameters))
         context = MarketContext(tuple(c for c in candles if c.open_time <= candle.open_time))
         action = "HOLD"
         if portfolio.has_position():
@@ -83,6 +99,7 @@ class PaperRunner:
         state["equity_peak"] = max(state["equity_peak"], equity)
         state["equity_curve"].append({"time": candle.open_time.isoformat(), "equity": equity, "cash": portfolio.balance})
         self._write_portfolio(state, portfolio)
+        self.storage.add_signal_event(experiment, candle.open_time.isoformat(), signal.value, action, candle.close)
         position = portfolio.position.quantity if portfolio.position else 0.0
         return f"{candle.open_time} {experiment.experiment_id[:8]} {experiment.symbol} {experiment.timeframe} close={candle.close:.2f} signal={signal.value} action={action} position={position:.8f} cash={portfolio.balance:.2f} equity={equity:.2f} realized={portfolio.realized_pnl:.2f}"
 

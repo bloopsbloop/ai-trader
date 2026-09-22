@@ -9,11 +9,11 @@ class PublicMarketData:
     """Read-only Binance public market-data client; it has no trading endpoints."""
 
     BASE_URL = "https://data-api.binance.vision/api/v3/klines"
-    INTERVAL_SECONDS = {"1h": 3600, "4h": 14400}
+    INTERVAL_SECONDS = {"15m": 900, "1h": 3600, "4h": 14400}
 
     def closed_candles(self, symbol, interval, limit=500, now=None):
         if interval not in self.INTERVAL_SECONDS:
-            raise ValueError("Paper trading supports 1h and 4h")
+            raise ValueError("Paper trading supports 15m, 1h and 4h")
         response = requests.get(self.BASE_URL, params={"symbol": symbol.upper(), "interval": interval, "limit": limit}, timeout=20)
         response.raise_for_status()
         now = now or datetime.now(timezone.utc)
