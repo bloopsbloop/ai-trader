@@ -1,5 +1,17 @@
 # AI Trader
 
+## Milestone 11.1 — ML dataset pipeline
+
+Build chronological WITH_NEWS and WITHOUT_NEWS datasets with:
+
+```powershell
+python -m app.ml.dataset
+```
+
+The pipeline uses locally cached closed candles, backward multi-timeframe joins,
+cost-adjusted future-return labels, purged chronological splits and walk-forward
+folds. See [`docs/MILESTONE_11_1_DATASET.md`](docs/MILESTONE_11_1_DATASET.md).
+
 ## Milestone 10 — isolated AI Scanner / Batch 3
 
 Local validation and standalone runner/dashboard commands:
