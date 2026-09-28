@@ -53,9 +53,9 @@ them to later periods, and does no scaling.
 - Candle period requested: 2023-01-01 through 2025-12-31.
 - Rows: 78,617 in each variant.
 - Labels overall: 49,898 negative (63.47%), 28,719 positive (36.53%).
-- WITHOUT_NEWS: 61 exported market features; 60 usable after train-only duplicate
+- WITHOUT_NEWS: 60 exported market features; 59 usable after train-only duplicate
   detection (`momentum_4_15m` duplicates the one-hour return at 1h sample times).
-- WITH_NEWS: 78 exported features (61 market + 17 news); 60 currently usable.
+- WITH_NEWS: 77 exported features (60 market + 17 news); 59 currently usable.
 - Train: 2023-01-01 09:00 UTC – 2024-10-19 08:00 UTC, 47,069 rows;
   30,356 negative / 16,713 positive.
 - Validation: 2024-10-19 13:00 UTC – 2025-05-26 12:00 UTC, 15,768 rows;

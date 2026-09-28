@@ -1,5 +1,22 @@
 # AI Trader
 
+## Milestone 11.2 — ML_V1_MARKET
+
+Train the market-only HistGradientBoosting model and evaluate it with the fixed
+chronological dataset contract:
+
+```powershell
+python -m app.ml.train --force
+python -m app.ml.evaluate
+```
+
+The trainer uses train and validation only for model, class-weight, calibration,
+and threshold selection. Evaluation opens the test partition afterward and exports
+classification, trading, baseline, three-fold walk-forward, and permutation
+importance reports. The registered model remains an offline research artifact; it
+is not connected to the Batch 3 runner. See
+[`docs/MILESTONE_11_2_ML_V1.md`](docs/MILESTONE_11_2_ML_V1.md).
+
 ## Milestone 11.1 — ML dataset pipeline
 
 Build chronological WITH_NEWS and WITHOUT_NEWS datasets with:

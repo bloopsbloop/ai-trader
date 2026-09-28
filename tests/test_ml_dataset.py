@@ -123,6 +123,7 @@ def test_dataset_metadata_and_target_definition(tmp_path):
     assert set(metadata["periods"]) == {"train", "validation", "test"}
     assert metadata["target"]["horizon_minutes"] == 60
     assert metadata["target"]["round_trip_cost"] == pytest.approx(.0018)
+    assert "target_timestamp" not in features
     assert sum(sum(values.values()) for values in metadata["class_distribution"].values()) == len(frame)
 
 

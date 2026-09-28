@@ -8,3 +8,4 @@ pytest
 streamlit
 reportlab
 matplotlib
+scikit-learn>=1.9,<2

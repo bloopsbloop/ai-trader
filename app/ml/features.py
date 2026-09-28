@@ -155,5 +155,5 @@ def merge_multitimeframe(frames: dict[str, pd.DataFrame], base_timeframe: str) -
 
 def market_feature_names(frame: pd.DataFrame) -> list[str]:
     excluded = {"timestamp", "source_open_time", "close", "symbol", "timeframe", "future_close",
-                "future_net_return", "label", "split"}
+                "future_net_return", "target_timestamp", "label", "split"}
     return [column for column in frame.columns if column not in excluded and not column.startswith("source_timestamp_")]
