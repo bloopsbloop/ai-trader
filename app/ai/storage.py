@@ -41,6 +41,7 @@ class AIStorage(PaperStorage):
                 CREATE TABLE IF NOT EXISTS ai_runtime (key TEXT PRIMARY KEY, payload TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS ml_shadow_predictions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    experiment_id TEXT NOT NULL,
                     candle_close_timestamp TEXT NOT NULL,
                     symbol TEXT NOT NULL,
                     base_timeframe TEXT NOT NULL,
@@ -57,17 +58,39 @@ class AIStorage(PaperStorage):
                     heuristic_decision TEXT,
                     target_timestamp TEXT NOT NULL,
                     resolved_at TEXT,
+                    future_close REAL,
                     gross_future_return REAL,
                     estimated_cost REAL,
                     actual_net_return REAL,
                     actual_label INTEGER,
                     prediction_correct INTEGER,
-                    UNIQUE(model_version, symbol, base_timeframe, candle_close_timestamp)
+                    UNIQUE(experiment_id, model_version, symbol, base_timeframe, candle_close_timestamp)
                 );
                 CREATE INDEX IF NOT EXISTS ml_shadow_unresolved
                     ON ml_shadow_predictions(symbol, target_timestamp)
                     WHERE resolved_at IS NULL;
+                CREATE TABLE IF NOT EXISTS ml_shadow_experiments (
+                    experiment_id TEXT PRIMARY KEY, payload TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS ml_shadow_cycles (
+                    experiment_id TEXT NOT NULL,
+                    slot INTEGER NOT NULL,
+                    cutoff TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    eligible_symbols INTEGER NOT NULL,
+                    inserted_predictions INTEGER NOT NULL,
+                    error_category TEXT,
+                    error TEXT,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY(experiment_id, slot)
+                );
             """)
+            # Additive migration for databases created by Milestone 11.3.
+            prediction_columns = {row[1] for row in connection.execute("PRAGMA table_info(ml_shadow_predictions)")}
+            if "experiment_id" not in prediction_columns:
+                connection.execute("ALTER TABLE ml_shadow_predictions ADD COLUMN experiment_id TEXT NOT NULL DEFAULT 'ml_v1_market_forward_001'")
+            if "future_close" not in prediction_columns:
+                connection.execute("ALTER TABLE ml_shadow_predictions ADD COLUMN future_close REAL")
 
     def _connect(self):
         return sqlite3.connect(self.path, timeout=30)
@@ -101,7 +124,7 @@ class AIStorage(PaperStorage):
             return connection.execute("SELECT 1 FROM ai_scans WHERE slot=?", (slot,)).fetchone() is not None
 
     def store_shadow_prediction(self, row):
-        columns = ("candle_close_timestamp", "symbol", "base_timeframe", "model_version",
+        columns = ("experiment_id", "candle_close_timestamp", "symbol", "base_timeframe", "model_version",
                    "feature_version", "probability_positive", "decision_threshold",
                    "shadow_decision", "market_price", "scoring_mode", "feature_hash",
                    "created_at", "heuristic_score", "heuristic_decision", "target_timestamp")
@@ -112,9 +135,12 @@ class AIStorage(PaperStorage):
                 tuple(row.get(column) for column in columns))
             return bool(cursor.rowcount)
 
-    def unresolved_shadow_predictions(self, symbols=None):
+    def unresolved_shadow_predictions(self, symbols=None, experiment_id=None):
         query = "SELECT * FROM ml_shadow_predictions WHERE resolved_at IS NULL"
         parameters = []
+        if experiment_id:
+            query += " AND experiment_id=?"
+            parameters.append(experiment_id)
         if symbols:
             placeholders = ",".join("?" for _ in symbols)
             query += f" AND symbol IN ({placeholders})"
@@ -126,13 +152,42 @@ class AIStorage(PaperStorage):
     def resolve_shadow_prediction(self, prediction_id, outcome):
         with self._connection() as connection:
             cursor = connection.execute("""
-                UPDATE ml_shadow_predictions SET resolved_at=?, gross_future_return=?,
+                UPDATE ml_shadow_predictions SET resolved_at=?, future_close=?, gross_future_return=?,
                     estimated_cost=?, actual_net_return=?, actual_label=?, prediction_correct=?
                 WHERE id=? AND resolved_at IS NULL
-            """, (outcome["resolved_at"], outcome["gross_future_return"],
+            """, (outcome["resolved_at"], outcome["future_close"], outcome["gross_future_return"],
                   outcome["estimated_cost"], outcome["actual_net_return"],
                   outcome["actual_label"], outcome["prediction_correct"], prediction_id))
             return bool(cursor.rowcount)
+
+    def ensure_shadow_experiment(self, experiment_id, payload):
+        with self._connection() as connection:
+            saved = connection.execute("SELECT payload FROM ml_shadow_experiments WHERE experiment_id=?",
+                                       (experiment_id,)).fetchone()
+            if saved:
+                existing = json.loads(saved[0])
+                candidate = {**payload, "start_timestamp": existing["start_timestamp"]}
+                if candidate != existing:
+                    raise ValueError(f"Experiment metadata mismatch: {experiment_id}")
+                return existing
+            earliest = connection.execute(
+                "SELECT MIN(created_at) FROM ml_shadow_predictions WHERE experiment_id=?",
+                (experiment_id,)).fetchone()[0]
+            if earliest and earliest < payload["start_timestamp"]:
+                payload = {**payload, "start_timestamp": earliest}
+            serialized = json.dumps(payload, sort_keys=True, allow_nan=False)
+            connection.execute("INSERT OR IGNORE INTO ml_shadow_experiments VALUES (?, ?)",
+                               (experiment_id, serialized))
+            return payload
+
+    def record_shadow_cycle(self, row):
+        columns = ("experiment_id", "slot", "cutoff", "status", "eligible_symbols",
+                   "inserted_predictions", "error_category", "error", "created_at")
+        with self._connection() as connection:
+            connection.execute(
+                f"INSERT OR IGNORE INTO ml_shadow_cycles ({','.join(columns)}) "
+                f"VALUES ({','.join('?' for _ in columns)})",
+                tuple(row.get(column) for column in columns))
 
     def record_shadow_failure(self, category, message, created_at):
         key = f"ml_shadow_failure:{category}"

@@ -43,14 +43,36 @@ def ml_shadow_page(st):
     path = os.getenv("AI_SCANNER_DB")
     report = shadow_report(path) if path else shadow_report()
     st.subheader("ML Shadow — forward observation")
-    st.warning("ML shadow predictions do not control paper trades.")
-    st.write({"Model": report["model_version"], "Mode": report["mode"],
+    st.warning("ML SHADOW ONLY — does not control paper trades.")
+    experiment = report["experiment"] or {}
+    st.subheader("Overview")
+    st.write({"Experiment ID": experiment.get("experiment_id", "Not initialized"),
+              "Model": report["model_version"], "Mode": report["mode"],
+              "Experiment start": experiment.get("start_timestamp"),
+              "Total predictions": report["metrics"]["prediction_count"],
+              "Resolved": report["metrics"]["resolved_count"],
+              "Unresolved": report["metrics"]["unresolved_count"],
               "Latest prediction UTC": report["latest_prediction_time"]})
     if report["metrics"]["status"] == "Not enough data":
         st.info(f"Not enough data: {report['metrics']['resolved_count']} resolved; "
                 f"at least {report['metrics']['minimum_resolved']} required.")
+    st.subheader("Performance")
     st.write(report["metrics"])
+    st.write({name: {key: value for key, value in curve.items() if key != "points"}
+              for name, curve in report["theoretical"].items()})
+    st.subheader("Disagreement Analysis")
+    st.dataframe([{"category": name, **values} for name, values in report["comparison"].items()],
+                 use_container_width=True)
+    st.subheader("Probability Buckets / Forward Calibration")
+    st.dataframe(report["probability_buckets"], use_container_width=True)
+    st.subheader("Per Symbol")
+    st.dataframe([{"symbol": symbol, **values} for symbol, values in report["per_symbol"].items()],
+                 use_container_width=True)
+    if report["data_quality"].get("warnings"):
+        st.warning(report["data_quality"]["warnings"])
+    st.subheader("Recent Predictions")
     columns = ("candle_close_timestamp", "symbol", "probability_positive", "decision_threshold",
-               "shadow_decision", "heuristic_decision", "resolved_at", "actual_net_return")
+               "shadow_decision", "heuristic_decision", "resolved_at", "future_close",
+               "actual_net_return")
     st.dataframe([{key: row.get(key) for key in columns} for row in report["latest"]],
                  use_container_width=True)

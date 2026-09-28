@@ -1,5 +1,23 @@
 # AI Trader
 
+## Milestone 11.4 — forward ML experiment
+
+Shadow observations now belong to the immutable experiment
+`ml_v1_market_forward_001`. Resolved predictions produce same-sample ML versus
+heuristic comparisons, calibration buckets, per-symbol metrics, data-quality
+warnings, and theoretical fixed-exposure equity curves.
+
+```powershell
+python -m app.ml.shadow status
+python -m app.ml.shadow report
+python -m app.ml.shadow resolve
+python -m app.ml.shadow export
+```
+
+Exports are written to `data/ml/forward/`. All results remain analytical and do
+not call PaperBroker. See
+[`docs/MILESTONE_11_4_FORWARD.md`](docs/MILESTONE_11_4_FORWARD.md).
+
 ## Milestone 11.3 — ML shadow mode
 
 `ML_V1_MARKET` now observes Batch 3 closed candles and records forward predictions

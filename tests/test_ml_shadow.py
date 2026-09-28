@@ -9,8 +9,11 @@ import pytest
 from app.ai.runner import AIRunner
 from app.ai.storage import AIStorage
 from app.ml.features import FEATURE_VERSION, market_feature_names
-from app.ml.shadow import (MLShadowService, build_live_feature_row, forward_metrics,
-                           shadow_report)
+from app.ml.shadow import (EXPERIMENT_ID, MLShadowService, _quality,
+                           build_live_feature_row, comparison_categories,
+                           disagreement_rows, export_forward, forward_metrics,
+                           per_symbol_metrics, probability_buckets, shadow_report,
+                           theoretical_curve)
 from app.ml.model import HistGradientBoostingDecisionModel
 from app.ml.train import file_hash
 from app.models.candle import Candle
@@ -94,17 +97,45 @@ def test_prediction_storage_shadow_decision_and_restart_idempotency(tmp_path):
     report = shadow_report(first.storage.path)
     assert report["metrics"]["prediction_count"] == 1
     assert report["latest"][0]["heuristic_decision"] == "BUY"
+    with sqlite3.connect(first.storage.path) as connection:
+        assert connection.execute("SELECT inserted_predictions FROM ml_shadow_cycles").fetchone()[0] == 1
 
 
 def test_outcome_resolution_waits_for_future_closed_candle(tmp_path):
     obj, data = service(tmp_path)
     obj.process({"BTCUSDT": data}, heuristic(), NOW)
+    original = shadow_report(obj.storage.path)["latest"][0]
     assert not obj.resolve({"BTCUSDT": data}, NOW + timedelta(hours=3, minutes=59))
     future_time = NOW + timedelta(hours=4)
     future_data = candles(future_time)
     resolved = obj.resolve({"BTCUSDT": future_data}, future_time)
     assert len(resolved) == 1 and resolved[0]["estimated_cost"] == pytest.approx(.0018)
+    assert resolved[0]["future_close"] > 0
     assert not obj.resolve({"BTCUSDT": future_data}, future_time)
+    final = shadow_report(obj.storage.path)["latest"][0]
+    for key in ("probability_positive", "heuristic_score", "heuristic_decision", "feature_hash"):
+        assert final[key] == original[key]
+
+
+def test_next_shadow_cycle_resolves_due_outcomes_automatically(tmp_path):
+    obj, data = service(tmp_path)
+    obj.process({"BTCUSDT": data}, heuristic(), NOW)
+    future_time = NOW + timedelta(hours=4)
+    obj.process({"BTCUSDT": candles(future_time)}, heuristic(), future_time)
+    metrics = shadow_report(obj.storage.path, now=lambda: future_time)["metrics"]
+    assert metrics["resolved_count"] == 1
+    assert metrics["unresolved_count"] == 1
+
+
+def resolved_row(probability, actual_label, actual_return, ml="SHADOW_BUY", heuristic_decision="PASS",
+                 symbol="BTCUSDT", hour=0):
+    stamp = NOW + timedelta(hours=hour)
+    return {"experiment_id": EXPERIMENT_ID, "candle_close_timestamp": stamp.isoformat(),
+            "target_timestamp": (stamp + timedelta(hours=4)).isoformat(), "symbol": symbol,
+            "resolved_at": (stamp + timedelta(hours=4)).isoformat(),
+            "actual_label": actual_label, "probability_positive": probability,
+            "shadow_decision": ml, "heuristic_decision": heuristic_decision,
+            "actual_net_return": actual_return}
 
 
 def test_metrics_require_enough_resolved_samples():
@@ -114,7 +145,59 @@ def test_metrics_require_enough_resolved_samples():
     metrics = forward_metrics(([row] * 10) + [{**row, "actual_label": 0,
                                                "probability_positive": .2,
                                                "shadow_decision": "SHADOW_PASS"}] * 10)
-    assert metrics["status"] == "Ready" and metrics["roc_auc"] == 1
+    assert metrics["status"] == "Preliminary" and metrics["roc_auc"] == 1
+    assert forward_metrics([row] * 50)["status"] == "Early forward sample"
+    assert forward_metrics([row] * 200)["status"] == "Larger forward sample"
+
+
+def test_comparison_disagreements_probability_buckets_and_symbols():
+    rows = [resolved_row(.75, 1, .02, "SHADOW_BUY", "BUY", "BTCUSDT", 0),
+            resolved_row(.55, 0, -.01, "SHADOW_BUY", "PASS", "ETHUSDT", 1),
+            resolved_row(.45, 1, .01, "SHADOW_PASS", "BUY", "SOLUSDT", 2),
+            resolved_row(.35, 0, -.02, "SHADOW_PASS", "PASS", "BTCUSDT", 3)]
+    categories = comparison_categories(rows)
+    assert all(values["count"] == 1 for values in categories.values())
+    assert {row["disagreement"] for row in disagreement_rows(rows)} == {
+        "A_ML_BUY_HEURISTIC_PASS", "B_ML_PASS_HEURISTIC_BUY"}
+    buckets = {row["bucket"]: row for row in probability_buckets(rows)}
+    assert buckets["0.70-1.00"]["actual_positive_rate"] == 1
+    assert buckets["0.50-0.60"]["average_actual_net_return"] == pytest.approx(-.01)
+    symbols = per_symbol_metrics(rows)
+    assert symbols["BTCUSDT"]["resolved_count"] == 2
+    assert symbols["ETHUSDT"]["status"] == "Not enough data"
+
+
+def test_theoretical_curve_uses_fixed_notional_and_cost_adjusted_return():
+    rows = [resolved_row(.8, 1, .0082, hour=0),
+            resolved_row(.8, 0, -.0118, hour=1)]
+    curve = theoretical_curve(rows, "shadow_decision", "SHADOW_BUY", "ML")
+    assert curve["fixed_notional_per_signal"] == 100
+    assert curve["pnl"] == pytest.approx(-.36)
+    assert curve["ending_equity"] == pytest.approx(999.64)
+    assert curve["trade_count"] == 2 and curve["max_drawdown"] > 0
+
+
+def test_experiment_metadata_export_and_quality_warnings(tmp_path):
+    obj, data = service(tmp_path)
+    obj.process({"BTCUSDT": data}, heuristic(), NOW)
+    report = shadow_report(obj.storage.path, now=lambda: NOW + timedelta(hours=6))
+    assert report["experiment"]["experiment_id"] == EXPERIMENT_ID
+    assert report["experiment"]["model_version"] == "ml_v1_market"
+    assert report["experiment"]["round_trip_cost"] == pytest.approx(.0018)
+    exported = export_forward(obj.storage.path, tmp_path / "forward")
+    assert set(exported["files"]) == {"summary.json", "summary.md", "predictions.csv",
+                                         "disagreements.csv", "probability_buckets.csv", "equity_curve.csv"}
+    quality = _quality(
+        [resolved_row(.7, 1, .01, hour=0) | {"resolved_at": None,
+                                            "target_timestamp": (NOW - timedelta(hours=2)).isoformat()},
+         resolved_row(.7, 1, .01, hour=3)],
+        [{"slot": 1, "status": "FAILED", "error_category": "feature_schema"}],
+        [{"slot": 2, "stale_scan": True, "errors": []}], NOW)
+    assert quality["missing_inference_cycles"] == 1
+    assert quality["feature_schema_failures"] == 1
+    assert quality["unresolved_older_than_expected"] == 1
+    assert quality["timestamp_gaps"] == 1
+    assert quality["warnings"]
 
 
 def test_model_failure_fallback_does_not_change_batch3_results(tmp_path):
@@ -210,5 +293,5 @@ def test_shadow_dashboard_is_read_only_and_prominent(tmp_path, monkeypatch):
         "import streamlit as st\nfrom app.dashboard.ai_pages import ml_shadow_page\nml_shadow_page(st)"
     ).run(timeout=30)
     assert not page.exception
-    assert any("do not control paper trades" in item.value for item in page.warning)
+    assert any("does not control paper trades" in item.value.lower() for item in page.warning)
     assert before == obj.storage.path.read_bytes()
