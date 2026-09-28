@@ -1,0 +1,21 @@
+# Template only. Adjust User, WorkingDirectory and Python path for your server.
+# Separate from all existing Batch 1/2 units; not installed automatically.
+[Unit]
+Description=AI Trader Batch 3 PAPER scanner
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ai-trader
+WorkingDirectory=/opt/AI_Trader
+ExecStart=/opt/AI_Trader/.venv/bin/python -m app.ai.run --paper --loop --interval 900
+Restart=on-failure
+RestartSec=60
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/AI_Trader/data/ai
+
+[Install]
+WantedBy=multi-user.target

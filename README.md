@@ -1,5 +1,35 @@
 # AI Trader
 
+## Milestone 10 — isolated AI Scanner / Batch 3
+
+Local validation and standalone runner/dashboard commands:
+[`docs/BATCH3_LOCAL.md`](docs/BATCH3_LOCAL.md). Displayed portfolios are
+`with_news` / `without_news`; existing database IDs remain unchanged.
+
+See `docs/MILESTONE_10.md` for architecture, migration boundaries and limitations.
+
+```powershell
+python -m app.ai.run                  # scan only, no virtual fills
+python -m app.ai.run --paper           # one forward PAPER cycle
+python -m app.ai.run --paper --loop    # separate Batch 3 process
+```
+
+The separate database is `data/ai/batch3.sqlite3`; `--db` can override it but rejects
+existing non-AI databases. RSS sources can be supplied with repeated `--feed HTTPS_URL`.
+Telegram delivery is disabled unless `--telegram` is passed. AI Scanner and AI News
+are read-only dashboard pages; set `AI_SCANNER_DB` when using a custom DB path.
+The default scorer is an untrained, versioned heuristic with a validated LLM/ML
+interface. Batch 3 creates two 1000 USDT virtual accounts, market+news and
+market-only, each with at most one position and 10% sizing through the existing
+RiskManager/PaperBroker. BUY requires trend/volume confirmation. Exits use 3%
+stop, 6% take-profit, weak score or important negative news; stops are polling
+based and can gap. Fees and slippage are inherited from PaperBroker.
+
+Existing Batch 1/2 code and database are untouched. The systemd file in `deploy/`
+is only an example; no server service is installed or restarted by this change.
+Create the AI data directory before using the unit's `ReadWritePaths` restriction.
+No live trading mode, API keys or Binance order endpoints are present in Batch 3.
+
 Python-проект для исследования торговых стратегий и их бэктестинга на данных Binance.
 
 ## Professional Backtest Engine
