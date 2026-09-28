@@ -1,5 +1,21 @@
 # AI Trader
 
+## Milestone 12.1 — historical news archive
+
+The local canonical archive stores normalized articles, raw audit metadata,
+deduplication records, timestamp confidence, and ML eligibility in
+`data/news/archive.sqlite3`.
+
+```powershell
+python -m app.news.collect --limit 20
+python -m app.news.backfill --source hackernews --start 2026-09-01 --end 2026-09-28 --symbols BTC,ETH,SOL --limit 100 --resume
+python -m app.news.coverage
+```
+
+Historical imports do not invent a local `first_seen_at`. An item remains
+ML-ineligible when its publication or historical availability cannot be proved.
+See [`docs/MILESTONE_12_1_NEWS_ARCHIVE.md`](docs/MILESTONE_12_1_NEWS_ARCHIVE.md).
+
 ## Milestone 11.4 — forward ML experiment
 
 Shadow observations now belong to the immutable experiment
