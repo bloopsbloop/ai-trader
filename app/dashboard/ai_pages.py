@@ -1,5 +1,6 @@
 import os
 from app.ai.storage import read_dashboard, PORTFOLIO_LABELS
+from app.ml.shadow import shadow_report
 
 
 def scanner_page(st):
@@ -36,3 +37,20 @@ def news_page(st):
         st.write(data["scan"]["source_health"])
         st.dataframe(data["scan"]["news_scores"], use_container_width=True)
     st.dataframe(data["news"], use_container_width=True)
+
+
+def ml_shadow_page(st):
+    path = os.getenv("AI_SCANNER_DB")
+    report = shadow_report(path) if path else shadow_report()
+    st.subheader("ML Shadow — forward observation")
+    st.warning("ML shadow predictions do not control paper trades.")
+    st.write({"Model": report["model_version"], "Mode": report["mode"],
+              "Latest prediction UTC": report["latest_prediction_time"]})
+    if report["metrics"]["status"] == "Not enough data":
+        st.info(f"Not enough data: {report['metrics']['resolved_count']} resolved; "
+                f"at least {report['metrics']['minimum_resolved']} required.")
+    st.write(report["metrics"])
+    columns = ("candle_close_timestamp", "symbol", "probability_positive", "decision_threshold",
+               "shadow_decision", "heuristic_decision", "resolved_at", "actual_net_return")
+    st.dataframe([{key: row.get(key) for key in columns} for row in report["latest"]],
+                 use_container_width=True)

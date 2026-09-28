@@ -6,7 +6,7 @@ from app.dashboard.exports import create_pdf_report, csv_bytes, html_report, jso
 from app.paper.report import build_report
 from app.paper.storage import PaperStorage
 from app.telegram.notifier import TelegramNotifier
-from app.dashboard.ai_pages import scanner_page, news_page
+from app.dashboard.ai_pages import ml_shadow_page, news_page, scanner_page
 
 
 def _dataframe(rows):
@@ -204,7 +204,7 @@ def main():
     st.set_page_config(page_title="AI Trader Research Dashboard", layout="wide")
     st.title("AI Trader — Research Dashboard")
     pages = {"Overview": overview_page, "Paper Trading": paper_page, "Batch Comparison": batch_comparison_page,
-             "AI Scanner": scanner_page, "AI News": news_page,
+             "AI Scanner": scanner_page, "AI News": news_page, "ML Shadow": ml_shadow_page,
              "Experiment Leaderboard": leaderboard_page, "Strategy Matrix": strategy_matrix_page, "Recent Signals": activity_page,
              "Optimizer": optimizer_page, "Research Reports": research_page, "Strategy Comparison": comparison_page,
              "Telegram Status": telegram_page, "Telegram Queue": telegram_queue_page, "Recovery History": recovery_page}

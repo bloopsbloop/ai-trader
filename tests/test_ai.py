@@ -54,6 +54,7 @@ class Collector:
 
 def runner(tmp_path, **kwargs):
     market = Market()
+    kwargs.setdefault("shadow", False)
     obj = AIRunner(AIStorage(tmp_path / "ai.sqlite3"), market, Collector(), paper=True, now=lambda: market.now, **kwargs)
     return obj, market
 

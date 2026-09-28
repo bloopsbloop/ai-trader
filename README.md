@@ -1,5 +1,22 @@
 # AI Trader
 
+## Milestone 11.3 — ML shadow mode
+
+`ML_V1_MARKET` now observes Batch 3 closed candles and records forward predictions
+without influencing ranking, BUY/WATCH/PASS, RiskManager, or PaperBroker. Inspect
+the local shadow state with:
+
+```powershell
+python -m app.ml.shadow status
+python -m app.ml.shadow report
+```
+
+Predictions are unique per model, symbol, timeframe, and candle close. Four-hour
+outcomes are resolved only after the required future candle closes. The dashboard
+page **ML Shadow** shows predictions and only exposes performance metrics after at
+least 20 resolved samples. See
+[`docs/MILESTONE_11_3_SHADOW.md`](docs/MILESTONE_11_3_SHADOW.md).
+
 ## Milestone 11.2 — ML_V1_MARKET
 
 Train the market-only HistGradientBoosting model and evaluate it with the fixed

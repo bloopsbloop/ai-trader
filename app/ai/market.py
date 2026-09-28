@@ -83,7 +83,9 @@ class PublicScannerData:
         return select_universe(info, tickers, limit)
 
     def candles(self, symbol, interval, cutoff):
-        rows = self._get("klines", symbol=symbol, interval=interval, limit=60, endTime=int(utc(cutoff).timestamp() * 1000))
+        # The heuristic still consumes its latest 50 bars. The longer shared window
+        # gives the shadow model the same indicator warm-up definitions as training.
+        rows = self._get("klines", symbol=symbol, interval=interval, limit=250, endTime=int(utc(cutoff).timestamp() * 1000))
         return [Candle(datetime.fromtimestamp(row[0] / 1000, timezone.utc), *(float(row[i]) for i in range(1, 6))) for row in rows]
 
     def quote(self, symbol):

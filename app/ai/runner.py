@@ -12,19 +12,26 @@ from app.models.position import Position
 from app.models.order import OrderStatus
 from app.paper.broker import PaperBroker
 
+_AUTO_SHADOW = object()
+
 
 def clock():
     return datetime.now(timezone.utc)
 
 
 class AIRunner:
-    def __init__(self, storage=None, market=None, collector=None, scorer=None, paper=False, now=clock):
+    def __init__(self, storage=None, market=None, collector=None, scorer=None, paper=False, now=clock,
+                 shadow=_AUTO_SHADOW):
         self.storage = storage or AIStorage()
         self.market = market or PublicScannerData()
         self.collector = collector or NewsCollector()
         self.scorer = scorer or BaselineScorer()
         self.paper = paper
         self.now = now
+        if shadow is _AUTO_SHADOW:
+            from app.ml.shadow import MLShadowService
+            shadow = MLShadowService(self.storage, now=self.now)
+        self.shadow = shadow
 
     def run_once(self):
         current_slot = int(utc(self.now()).timestamp()) // 900
@@ -44,13 +51,14 @@ class AIRunner:
             return {"already_processed": True, "slot": slot}
         eligible = {row["symbol"] for row in universe}
         held = {account["position"]["symbol"] for account in self.storage.accounts().values() if account.get("position")}
-        feature_rows = {}
+        feature_rows, candle_rows = {}, {}
         for symbol in sorted(eligible | held):
             if (utc(self.now()) - cutoff).total_seconds() > 180:
                 errors.append({"stage": "features", "error": "Scan time budget exceeded; remaining symbols skipped"})
                 break
             try:
-                feature_rows[symbol] = {tf: features(self.market.candles(symbol, tf, cutoff), tf, cutoff) for tf in INTERVALS}
+                candle_rows[symbol] = {tf: self.market.candles(symbol, tf, cutoff) for tf in INTERVALS}
+                feature_rows[symbol] = {tf: features(candle_rows[symbol][tf], tf, cutoff) for tf in INTERVALS}
             except Exception as exc:
                 errors.append({"symbol": symbol, "stage": "features", "error": type(exc).__name__})
         assessments, scoring_errors = assess_news(self.storage.articles(cutoff), eligible | held, cutoff, self.scorer)
@@ -64,10 +72,13 @@ class AIRunner:
                     row.update(decision="WATCH", reason="news coverage unavailable")
         decision_at = utc(self.now())
         stale_scan = (decision_at - cutoff).total_seconds() > 180
+        shadow_summary = {"mode": "SHADOW / NO TRADE CONTROL", "inserted": 0,
+                          "error": None if self.shadow else "disabled"}
         scan = {"slot": slot, "mode": "PAPER" if self.paper else "SCAN_ONLY", "batch_id": "batch_3",
                 "cutoff": cutoff.isoformat(), "decision_at": decision_at.isoformat(), "universe": universe,
                 "rankings": rankings, "news_scores": assessments, "source_health": health, "errors": errors,
-                "stale_scan": stale_scan, "portfolio_labels": PORTFOLIO_LABELS}
+                "stale_scan": stale_scan, "portfolio_labels": PORTFOLIO_LABELS,
+                "ml_shadow": shadow_summary}
         with self.storage._connection() as connection:
             connection.execute("BEGIN IMMEDIATE")
             if connection.execute("SELECT 1 FROM ai_scans WHERE slot=?", (slot,)).fetchone():
@@ -88,6 +99,25 @@ class AIRunner:
                                         "stop_loss": 0.03, "take_profit": 0.06,
                                         "taker_commission": 0.0004, "slippage": 0.0005}
             connection.execute("INSERT INTO ai_scans VALUES (?, ?, ?)", (slot, cutoff.isoformat(), json.dumps(scan, allow_nan=False)))
+        # Shadow work runs only after the complete heuristic decision transaction.
+        # Its latency and failures therefore cannot affect ranking, quotes, or fills.
+        if self.shadow:
+            try:
+                shadow_rows = self.shadow.process(candle_rows, rankings["batch_3_market"], cutoff)
+                shadow_summary["inserted"] = len(shadow_rows)
+                self.storage.clear_shadow_failure("feature_schema")
+            except Exception as exc:
+                import logging
+                logging.exception("ML shadow cycle failed; heuristic Batch 3 continues")
+                shadow_summary["error"] = f"{type(exc).__name__}: {exc}"
+                scan["errors"].append({"stage": "ml_shadow", "error": type(exc).__name__})
+                category = "model_load" if getattr(self.shadow, "load_error", None) else (
+                    "feature_schema" if isinstance(exc, ValueError) else "inference")
+                if category in {"model_load", "feature_schema"}:
+                    self.storage.record_shadow_failure(category, shadow_summary["error"], utc(self.now()).isoformat())
+            with self.storage._connection() as connection:
+                connection.execute("UPDATE ai_scans SET payload=? WHERE slot=?",
+                                   (json.dumps(scan, allow_nan=False), slot))
         return scan
 
     def _execute(self, connection, name, ranking, scan, quotes):
