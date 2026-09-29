@@ -1,5 +1,18 @@
 # AI Trader
 
+## Milestone 12.4 — research-only WITH_NEWS comparison
+
+Run the controlled MARKET_ONLY versus WITH_NEWS_V2 experiment with:
+
+```powershell
+python -m app.ml.news_research
+```
+
+The resulting model is stored separately under
+`data/models/ml_v1_news_research/` and is explicitly blocked from Batch 3
+control. See
+[`docs/MILESTONE_12_4_NEWS_RESEARCH.md`](docs/MILESTONE_12_4_NEWS_RESEARCH.md).
+
 ## Milestone 12.3 — leakage-safe historical news features
 
 `WITH_NEWS_V2` joins the canonical archive to 1h ML samples using only

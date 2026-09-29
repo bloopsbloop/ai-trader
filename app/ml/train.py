@@ -42,7 +42,8 @@ def load_dataset(path=DEFAULT_DATASET, metadata_path=DEFAULT_DATASET_METADATA):
     metadata = json.loads(Path(metadata_path).read_text(encoding="utf-8"))
     if metadata.get("news", {}).get("included") and not metadata["news"].get("historical_observations_present"):
         raise ValueError("Refusing ML_WITH_NEWS: historical news coverage is unavailable")
-    frame = pd.read_csv(path, parse_dates=["timestamp", "target_timestamp", "source_open_time"])
+    frame = pd.read_csv(path, parse_dates=["timestamp", "target_timestamp", "source_open_time"],
+                        low_memory=False)
     return frame, metadata
 
 
@@ -74,7 +75,8 @@ def _feature_importance(model, validation, seed):
 
 
 def train_candidate(frame, dataset_metadata, seed=42, threshold_grid=DEFAULT_THRESHOLDS,
-                    parameter_candidates=PARAMETER_CANDIDATES):
+                    parameter_candidates=PARAMETER_CANDIDATES, weight_options=(False, True),
+                    compute_importance=True):
     train = frame[frame["split"] == "train"].copy()
     validation = frame[frame["split"] == "validation"].copy()
     if frame[frame["split"] == "test"].empty:
@@ -84,7 +86,7 @@ def train_candidate(frame, dataset_metadata, seed=42, threshold_grid=DEFAULT_THR
     candidates = []
     best = None
     for parameters in parameter_candidates:
-        for weighted in (False, True):
+        for weighted in weight_options:
             model, _ = _model(preprocessor.feature_names_, preprocessor, parameters, seed, weighted)
             weights = balanced_sample_weights(train["label"]) if weighted else None
             model.fit(train, train["label"], weights)
@@ -134,7 +136,7 @@ def train_candidate(frame, dataset_metadata, seed=42, threshold_grid=DEFAULT_THR
     threshold = selected_threshold["threshold"]
     train_probability = model.predict_proba(train)
     validation_probability = model.predict_proba(validation)
-    importance = _feature_importance(model, validation, seed)
+    importance = _feature_importance(model, validation, seed) if compute_importance else []
     return {"model": model, "preprocessor": preprocessor, "threshold": threshold,
             "metrics": {"train": classification_metrics(train["label"], train_probability, threshold),
                         "validation": classification_metrics(validation["label"], validation_probability, threshold)},
