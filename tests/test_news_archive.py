@@ -122,8 +122,8 @@ def test_coverage_report_and_exports(tmp_path):
     assert report["event_type_distribution"]["hack"] == 1
     assert report["integrity"]["passed"]
     files = export_coverage(report, tmp_path / "reports")
-    assert {"coverage.json", "coverage.md", "articles_per_day.csv",
-            "articles_per_source.csv", "articles_per_symbol.csv"} == set(files)
+    assert {"coverage.json", "coverage.md", "articles_per_day.csv", "articles_per_month.csv",
+            "articles_per_source.csv", "articles_per_symbol.csv", "monthly_matrix.csv"} == set(files)
     json.loads((tmp_path / "reports" / "coverage.json").read_text(encoding="utf-8"))
 
 

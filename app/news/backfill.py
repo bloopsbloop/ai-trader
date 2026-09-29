@@ -7,6 +7,7 @@ import json
 import time
 
 from .adapters import ADAPTERS
+from app.ai.http import RateLimited
 from .models import digest
 from .storage import DEFAULT_PATH, NewsArchive
 
@@ -28,24 +29,31 @@ def run_backfill(archive, adapter, start, end, symbols=("BTC", "ETH", "SOL"), li
                  resume=False, sleep=time.sleep):
     if not adapter.supports_backfill():
         raise ValueError(f"{adapter.source_name()} does not provide a historical backfill contract")
-    query_hash = digest({"contract_version": 2, "symbols": sorted(symbols), "limit": limit})
+    query_hash = digest({"contract_version": 3, "symbols": sorted(symbols), "limit": limit})
     total = {"fetched": 0, "inserted": 0, "duplicates": 0, "windows_completed": 0,
-             "windows_skipped": 0}
-    intervals = list(windows(start, end))
+             "windows_skipped": 0, "windows_failed": 0, "windows_rate_limited": 0}
+    interval_days = adapter.backfill_window_days() if hasattr(adapter, "backfill_window_days") else 1
+    intervals = list(windows(start, end, interval_days))
     for index, (window_start, window_end) in enumerate(intervals):
         start_key, end_key = window_start.isoformat(), window_end.isoformat()
         if resume and archive.checkpoint_complete(adapter.source_name(), query_hash, start_key, end_key):
             total["windows_skipped"] += 1
             continue
+        empty = {"fetched": 0, "inserted": 0, "duplicates": 0}
+        archive.save_checkpoint(adapter.source_name(), query_hash, start_key, end_key, empty, "PENDING")
         try:
             raw = adapter.fetch(window_start, window_end, symbols, min(limit - total["fetched"], 250))
             collected = datetime.now(timezone.utc)
             normalized = [adapter.normalize(item, collected, historical_import=True) for item in raw]
             stats = archive.ingest(normalized)
             archive.save_checkpoint(adapter.source_name(), query_hash, start_key, end_key, stats)
+        except RateLimited:
+            archive.save_checkpoint(adapter.source_name(), query_hash, start_key, end_key, empty, "RATE_LIMITED")
+            total["windows_rate_limited"] += 1
+            break
         except Exception:
-            stats = {"fetched": 0, "inserted": 0, "duplicates": 0}
-            archive.save_checkpoint(adapter.source_name(), query_hash, start_key, end_key, stats, "FAILED")
+            archive.save_checkpoint(adapter.source_name(), query_hash, start_key, end_key, empty, "FAILED")
+            total["windows_failed"] += 1
             raise
         for key in ("fetched", "inserted", "duplicates"):
             total[key] += stats[key]

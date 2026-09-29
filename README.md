@@ -1,5 +1,22 @@
 # AI Trader
 
+## Milestone 12.2 — provenance and historical expansion
+
+The news archive now records an explicit information-availability timestamp and
+source provenance. Official BTC/ETH/SOL GitHub release posts provide bounded,
+resumable historical coverage without promoting third-party index timestamps to
+ML-eligible data.
+
+```powershell
+python -m app.news.backfill --source github --start 2023-01-01 --end 2026-01-01 --symbols BTC,ETH,SOL --resume
+python -m app.news.coverage
+python -m app.news.readiness
+python -m app.news.validate
+python -m app.news.export --ml-eligible-only
+```
+
+See [`docs/MILESTONE_12_2_PROVENANCE.md`](docs/MILESTONE_12_2_PROVENANCE.md).
+
 ## Milestone 12.1 — historical news archive
 
 The local canonical archive stores normalized articles, raw audit metadata,

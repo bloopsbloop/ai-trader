@@ -33,8 +33,12 @@ def coverage_report(archive):
     rows = archive.articles()
     with archive.connect() as connection:
         duplicates = connection.execute("SELECT COUNT(*) FROM news_duplicates").fetchone()[0]
+        evidence = connection.execute("SELECT COUNT(*) FROM news_source_evidence").fetchone()[0]
+        source_rows = connection.execute("SELECT * FROM news_sources ORDER BY source_name").fetchall()
+        source_columns = [item[1] for item in connection.execute("PRAGMA table_info(news_sources)")]
     known_dates = [row["published_at"] or row.get("archive_observed_at") for row in rows]
     per_day = Counter(value[:10] for value in known_dates if value)
+    per_month = Counter(value[:7] for value in known_dates if value)
     observed_range = _range(known_dates)
     missing_days = [day for day in _days_between(observed_range["start"], observed_range["end"])
                     if not per_day[day]]
@@ -46,27 +50,60 @@ def coverage_report(archive):
                         for row in rows)
     events = Counter(row["event_type"] for row in rows)
     reasons = Counter(row["ml_ineligible_reason"] or "eligible" for row in rows)
+    basis = Counter(row["availability_basis"] for row in rows)
+    availability_confidence = Counter(row["availability_confidence"] for row in rows)
+    months = sorted(per_month)
+    monthly_matrix = {month: {symbol: 0 for symbol in ("BTC", "ETH", "SOL", "market_wide")}
+                      for month in months}
+    for row in rows:
+        stamp = row["availability_timestamp"] or row["published_at"] or row.get("archive_observed_at")
+        if not stamp:
+            continue
+        month = stamp[:7]
+        monthly_matrix.setdefault(month, {symbol: 0 for symbol in ("BTC", "ETH", "SOL", "market_wide")})
+        for symbol in row["symbols"]:
+            if symbol in monthly_matrix[month]:
+                monthly_matrix[month][symbol] += 1
+        if row["market_wide"]:
+            monthly_matrix[month]["market_wide"] += 1
+    month_gaps = []
+    if observed_range["start"] and observed_range["end"]:
+        cursor = date.fromisoformat(observed_range["start"][:7] + "-01")
+        finish = date.fromisoformat(observed_range["end"][:7] + "-01")
+        while cursor <= finish:
+            month = cursor.strftime("%Y-%m")
+            if not per_month[month]: month_gaps.append(month)
+            cursor = (cursor.replace(day=28) + timedelta(days=4)).replace(day=1)
     published_after_collection = sum(bool(row["published_at"] and row["published_at"] > row["collected_at"])
                                      for row in rows)
     availability_before_publication = sum(bool(row["published_at"] and row["first_seen_at"] and
                                                row["first_seen_at"] < row["published_at"]) for row in rows)
     imported_claiming_source_time = sum(bool(row["first_seen_confidence"] == "unknown_historical" and
                                              row["first_seen_at"]) for row in rows)
+    eligible_count = sum(row["ml_eligible"] for row in rows)
     return {"generated_at": datetime.now().astimezone().isoformat(), "article_count": len(rows),
-            "ml_eligible_count": sum(row["ml_eligible"] for row in rows),
+            "ml_eligible_count": eligible_count,
+            "ml_eligible_percentage": eligible_count / len(rows) * 100 if rows else 0,
             "market_wide_count": sum(row["market_wide"] for row in rows),
             "published_range": _range([row["published_at"] for row in rows]),
             "archive_observed_range": _range([row.get("archive_observed_at") for row in rows]),
             "collection_range": _range([row["collected_at"] for row in rows]),
             "coverage_date_range": observed_range,
             "articles_per_day": dict(sorted(per_day.items())),
+            "articles_per_month": dict(sorted(per_month.items())),
+            "monthly_matrix": dict(sorted(monthly_matrix.items())),
             "articles_per_source": dict(sorted(sources.items())),
             "articles_per_symbol": dict(sorted(symbols.items())),
             "missing_day_gaps": missing_days,
+            "missing_month_gaps": month_gaps,
+            "availability_basis": dict(sorted(basis.items())),
+            "availability_confidence": dict(sorted(availability_confidence.items())),
             "timestamp_confidence": dict(sorted(timestamp_confidence.items())),
             "first_seen_confidence": dict(sorted(first_seen_confidence.items())),
             "duplicates_observed": duplicates,
+            "syndication_evidence_count": evidence,
             "duplicate_rate": duplicates / (len(rows) + duplicates) if rows or duplicates else 0.0,
+            "source_provenance": [dict(zip(source_columns, row)) for row in source_rows],
             "sentiment_distribution": dict(sorted(sentiment.items())),
             "event_type_distribution": dict(sorted(events.items())),
             "ml_eligibility_reasons": dict(sorted(reasons.items())),
@@ -99,8 +136,13 @@ def export_coverage(report, output=DEFAULT_REPORTS):
                 "Imported archive timestamps are reported separately from source publication and local first-seen times."]
     (output / "coverage.md").write_text("\n".join(markdown) + "\n", encoding="utf-8")
     _csv(output / "articles_per_day.csv", report["articles_per_day"], "date", "articles")
+    _csv(output / "articles_per_month.csv", report["articles_per_month"], "month", "articles")
     _csv(output / "articles_per_source.csv", report["articles_per_source"], "source", "articles")
     _csv(output / "articles_per_symbol.csv", report["articles_per_symbol"], "symbol", "articles")
+    with (output / "monthly_matrix.csv").open("w", newline="", encoding="utf-8") as target:
+        writer = csv.DictWriter(target, fieldnames=("month", "BTC", "ETH", "SOL", "market_wide"))
+        writer.writeheader()
+        for month, values in report["monthly_matrix"].items(): writer.writerow({"month": month, **values})
     return sorted(path.name for path in output.iterdir())
 
 

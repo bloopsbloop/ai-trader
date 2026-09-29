@@ -71,6 +71,8 @@ class NormalizedArticle:
     language: str
     symbols: tuple[str, ...]
     symbol_confidence: dict[str, float]
+    mapping_method: str
+    mapping_version: str
     market_wide: bool
     event_type: str
     sentiment: float
@@ -80,9 +82,17 @@ class NormalizedArticle:
     scorer_version: str
     timestamp_confidence: str
     first_seen_confidence: str
+    availability_timestamp: str | None
+    availability_basis: str
+    availability_confidence: str
+    source_supports_backfill: bool
+    source_timestamp_basis: str
+    historical_availability_guarantee: bool
+    provenance_version: str
     raw_payload_hash: str
     content_hash: str
     title_key: str
+    canonical_story_id: str
     ml_eligible: bool
     ml_ineligible_reason: str | None
     raw_payload: dict

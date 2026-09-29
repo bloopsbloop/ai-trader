@@ -3,15 +3,17 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import re
+import time
 from typing import Protocol
 from urllib.parse import urlsplit
 from xml.etree import ElementTree as ET
 
 import requests
 
-from app.ai.http import PublicSession
+from app.ai.http import PublicSession, RateLimited
 from .models import RawNewsItem, utc_iso
 from .normalize import normalize_item
+from .provenance import SourceProvenance
 
 
 class NewsSourceAdapter(Protocol):
@@ -20,6 +22,8 @@ class NewsSourceAdapter(Protocol):
     def source_name(self): ...
     def supports_backfill(self): ...
     def rate_limit_info(self): ...
+    def provenance(self): ...
+    def backfill_window_days(self): ...
 
 
 class RSSAdapter:
@@ -37,6 +41,11 @@ class RSSAdapter:
 
     def rate_limit_info(self):
         return {"policy": "incremental feed only", "minimum_interval_seconds": 300}
+
+    def backfill_window_days(self): return 1
+    def provenance(self):
+        return SourceProvenance(self.name, "rss", False, "source_reported_publication",
+                                False, "high")
 
     @staticmethod
     def _field(item, name):
@@ -79,15 +88,15 @@ class RSSAdapter:
         return result
 
     def normalize(self, item, collected_at=None, historical_import=False):
-        return normalize_item(item, collected_at, historical_import,
-                              source_guarantees_availability=False)
+        return normalize_item(item, collected_at, historical_import, provenance=self.provenance())
 
 
 class GDELTAdapter:
     URL = "https://api.gdeltproject.org/api/v2/doc/doc"
 
-    def __init__(self, session=None):
+    def __init__(self, session=None, sleep=time.sleep, attempts=3):
         self.session = session or PublicSession()
+        self.sleep, self.attempts = sleep, attempts
 
     def source_name(self):
         return "gdelt_doc"
@@ -99,6 +108,28 @@ class GDELTAdapter:
         return {"minimum_interval_seconds": 5, "maximum_records_per_request": 250,
                 "note": "Article-list windows and availability are controlled by GDELT."}
 
+    def backfill_window_days(self): return 1
+    def provenance(self):
+        return SourceProvenance("gdelt_doc", "gdelt_doc_api", True,
+                                "third_party_index_timestamp", False, "low")
+
+    def _request(self, params):
+        last = None
+        for attempt in range(self.attempts):
+            try:
+                response = self.session.get(self.URL, params=params, timeout=(10, 30))
+                response.raise_for_status()
+                return response
+            except RateLimited:
+                raise
+            except (requests.Timeout, requests.ConnectionError, requests.HTTPError) as exc:
+                last = exc
+                if isinstance(exc, requests.HTTPError) and exc.response is not None and exc.response.status_code < 500:
+                    raise
+                if attempt + 1 < self.attempts:
+                    self.sleep(min(8, 2 ** attempt))
+        raise last
+
     @staticmethod
     def _stamp(value):
         if not value:
@@ -109,7 +140,8 @@ class GDELTAdapter:
             return value
 
     def fetch(self, start=None, end=None, symbols=(), limit=250):
-        names = {"BTC": "Bitcoin", "ETH": "Ethereum", "SOL": "Solana"}
+        names = {"BTC": '("Bitcoin" OR "BTC")', "ETH": '("Ethereum" OR "Ether" OR "ETH")',
+                 "SOL": '("Solana" OR "$SOL")'}
         terms = [names[symbol] for symbol in symbols if symbol in names] or list(names.values())
         params = {"query": "(" + " OR ".join(terms) + ")", "mode": "artlist",
                   "format": "json", "maxrecords": min(int(limit), 250), "sort": "datedesc"}
@@ -117,8 +149,7 @@ class GDELTAdapter:
             params["startdatetime"] = start.strftime("%Y%m%d%H%M%S")
         if end:
             params["enddatetime"] = end.strftime("%Y%m%d%H%M%S")
-        response = self.session.get(self.URL, params=params, timeout=(15, 45))
-        response.raise_for_status()
+        response = self._request(params)
         payload = response.json()
         result = []
         for article in payload.get("articles", []):
@@ -138,7 +169,7 @@ class GDELTAdapter:
         # GDELT's seendate is third-party archive observation, not a source-reported
         # publication timestamp and not proof of when our system knew the article.
         return normalize_item(item, collected_at, historical_import=True,
-                              source_guarantees_availability=False)
+                              provenance=self.provenance())
 
 
 class HackerNewsAdapter:
@@ -158,9 +189,15 @@ class HackerNewsAdapter:
         return {"maximum_requests_per_hour": 10_000, "maximum_retrievable_hits": 1_000,
                 "note": "HN submission time is archive observation, not publisher timestamp."}
 
+    def backfill_window_days(self): return 7
+    def provenance(self):
+        return SourceProvenance("hackernews", "hn_algolia_api", True,
+                                "public_post_creation", False, "medium")
+
     def fetch(self, start=None, end=None, symbols=(), limit=250):
-        names = {"BTC": "Bitcoin", "ETH": "Ethereum", "SOL": "Solana"}
-        terms = [names[symbol] for symbol in symbols if symbol in names] or list(names.values())
+        names = {"BTC": ("Bitcoin", "BTC"), "ETH": ("Ethereum", "Ether", "ETH"),
+                 "SOL": ("Solana",)}
+        terms = [term for symbol in symbols for term in names.get(symbol, ())] or ["Bitcoin", "Ethereum", "Solana"]
         filters = []
         if start:
             filters.append(f"created_at_i>={int(start.timestamp())}")
@@ -190,12 +227,73 @@ class HackerNewsAdapter:
 
     def normalize(self, item, collected_at=None, historical_import=False):
         return normalize_item(item, collected_at, historical_import=True,
-                              source_guarantees_availability=False)
+                              provenance=self.provenance())
+
+
+class GitHubReleasesAdapter:
+    """Authoritative public release posts for core BTC/ETH/SOL repositories."""
+    URL = "https://api.github.com/repos/{repo}/releases"
+    REPOSITORIES = {"BTC": "bitcoin/bitcoin", "ETH": "ethereum/go-ethereum",
+                    "SOL": "solana-labs/solana"}
+
+    def __init__(self, session=None): self.session = session or PublicSession()
+    def source_name(self): return "github_releases"
+    def supports_backfill(self): return True
+    def backfill_window_days(self): return 366
+    def rate_limit_info(self):
+        return {"maximum_unauthenticated_requests_per_hour": 60,
+                "minimum_interval_seconds": 1,
+                "note": "Public releases only; up to 100 results per page."}
+    def provenance(self):
+        return SourceProvenance("github_releases", "official_project_release", True,
+                                "authoritative_publication", True, "high")
+
+    def fetch(self, start=None, end=None, symbols=(), limit=250):
+        selected = [symbol for symbol in symbols if symbol in self.REPOSITORIES] or list(self.REPOSITORIES)
+        result = []
+        for symbol in selected:
+            repo = self.REPOSITORIES[symbol]
+            page = 1
+            while len(result) < limit:
+                response = self.session.get(self.URL.format(repo=repo),
+                                            params={"per_page": 100, "page": page},
+                                            headers={"Accept": "application/vnd.github+json",
+                                                     "X-GitHub-Api-Version": "2022-11-28"},
+                                            timeout=(10, 30))
+                response.raise_for_status()
+                releases = response.json()
+                if not releases:
+                    break
+                oldest = None
+                for release in releases:
+                    published = release.get("published_at")
+                    if release.get("draft") or not published:
+                        continue
+                    stamp = datetime.fromisoformat(published.replace("Z", "+00:00"))
+                    oldest = stamp if oldest is None or stamp < oldest else oldest
+                    if (start and stamp < start) or (end and stamp >= end):
+                        continue
+                    title = f"{symbol} {release.get('name') or release.get('tag_name') or 'release'}"
+                    result.append(RawNewsItem(
+                        f"github:{repo}", "official_project_release", title,
+                        release.get("html_url"), published, (release.get("body") or "")[:10000],
+                        str(release.get("id")), release.get("updated_at"), "en", release))
+                    if len(result) >= limit:
+                        break
+                if len(releases) < 100 or (start and oldest and oldest < start):
+                    break
+                page += 1
+        return result[:limit]
+
+    def normalize(self, item, collected_at=None, historical_import=False):
+        return normalize_item(item, collected_at, historical_import=True,
+                              provenance=self.provenance())
 
 
 ADAPTERS = {
     "gdelt": lambda: GDELTAdapter(),
     "hackernews": lambda: HackerNewsAdapter(),
+    "github": lambda: GitHubReleasesAdapter(),
     "coindesk": lambda: RSSAdapter("coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
     "cointelegraph": lambda: RSSAdapter("cointelegraph", "https://cointelegraph.com/rss"),
 }

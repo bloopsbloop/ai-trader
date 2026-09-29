@@ -7,9 +7,11 @@ import re
 
 from .models import (NormalizedArticle, RawNewsItem, canonical_url, digest,
                      normalized_text, utc_iso)
+from .provenance import SourceProvenance, availability_policy
 
 SUPPORTED_SYMBOLS = ("BTC", "ETH", "SOL")
 ALIASES = {"BTC": ("bitcoin",), "ETH": ("ethereum", "ether"), "SOL": ("solana",)}
+MAPPING_VERSION = "entity-rules-v2"
 EVENT_TYPES = ("regulation", "listing", "delisting", "hack", "exploit", "partnership",
                "upgrade", "ETF", "macro", "exchange", "legal", "tokenomics", "whale",
                "adoption", "outage", "other")
@@ -40,6 +42,8 @@ def map_symbols(text, allowed=SUPPORTED_SYMBOLS):
     result = {}
     for symbol in allowed:
         explicit = re.search(rf"(?<!\w)(?:\${symbol}|{symbol}USDT)(?!\w)", text, re.I)
+        # Uppercase-only bare tickers avoid matching ordinary words such as
+        # Spanish/Portuguese "sol". $SOL and SOLUSDT remain case-insensitive.
         bare = re.search(rf"(?<!\w){symbol}(?!\w)", text)
         alias = any(re.search(rf"\b{re.escape(name)}\b", text, re.I) for name in ALIASES[symbol])
         if explicit:
@@ -64,7 +68,7 @@ def classify(text):
 
 
 def normalize_item(item: RawNewsItem, collected_at=None, historical_import=False,
-                   source_guarantees_availability=False):
+                   source_guarantees_availability=False, provenance=None):
     collected = utc_iso(collected_at or datetime.now(timezone.utc))
     url = canonical_url(item.url)
     text = f"{item.title} {item.summary}".strip()
@@ -86,38 +90,42 @@ def normalize_item(item: RawNewsItem, collected_at=None, historical_import=False
     except (ValueError, TypeError):
         updated = None
     archive_observed = utc_iso(item.archive_observed_at) if item.archive_observed_at else None
-    if historical_import:
-        first_seen = archive_observed if source_guarantees_availability else None
-        first_seen_confidence = "archive_guaranteed" if first_seen else "unknown_historical"
-    else:
-        first_seen, first_seen_confidence = collected, "observed_by_collector"
-    reasons = []
-    if published is None:
-        reasons.append("unknown_publication_time")
-    if timestamp_confidence != "source_reported":
-        reasons.append("unreliable_publication_timestamp")
-    if first_seen is None:
-        reasons.append("historical_availability_unknown")
-    if published and first_seen and published > first_seen:
-        reasons.append("publication_after_availability")
-    if not mapping and not market_wide:
-        reasons.append("no_symbol_or_market_mapping")
+    provenance = provenance or SourceProvenance(
+        item.source, item.source_type, historical_import, "authoritative_publication"
+        if source_guarantees_availability else "source_reported_publication",
+        source_guarantees_availability, "source_reported" if published else "unknown")
+    first_seen = None if historical_import else collected
+    first_seen_confidence = "unknown_historical" if historical_import else "observed_by_collector"
+    (availability_timestamp, availability_basis, availability_confidence,
+     ml_eligible, ineligible_reason) = availability_policy(
+        published_at=published, collected_at=collected, historical_import=historical_import,
+        provenance=provenance, has_mapping=bool(mapping or market_wide))
     title_key = digest(normalized_text(item.title))
     content_hash = digest(normalized_text(item.title) + "\n" + normalized_text(item.summary))
     raw_hash = digest(item.raw_payload)
     identity = f"source:{item.source}:{item.source_article_id}" if item.source_article_id else f"url:{url}"
+    article_id = digest(identity)
     return NormalizedArticle(
-        id=digest(identity), source=item.source, source_type=item.source_type,
+        id=article_id, source=item.source, source_type=item.source_type,
         source_article_id=item.source_article_id, title=item.title.strip()[:1000],
         summary=item.summary.strip()[:10000], url=url, published_at=published,
         first_seen_at=first_seen, archive_observed_at=archive_observed,
         collected_at=collected, updated_at=updated,
         raw_published_at=item.raw_published_at, raw_updated_at=item.raw_updated_at,
         language=(item.language or "und").lower(), symbols=tuple(sorted(mapping)),
-        symbol_confidence=mapping, market_wide=market_wide, event_type=event,
+        symbol_confidence=mapping, mapping_method="canonical_name_ticker_context_rules",
+        mapping_version=MAPPING_VERSION, market_wide=market_wide, event_type=event,
         sentiment=sentiment, importance=importance, confidence=confidence,
         scorer_method="deterministic_headline_rules", scorer_version="historical-headline-v1",
-        timestamp_confidence=timestamp_confidence, first_seen_confidence=first_seen_confidence,
+        timestamp_confidence=provenance.timestamp_confidence if published else timestamp_confidence,
+        first_seen_confidence=first_seen_confidence,
+        availability_timestamp=availability_timestamp, availability_basis=availability_basis,
+        availability_confidence=availability_confidence,
+        source_supports_backfill=provenance.supports_backfill,
+        source_timestamp_basis=provenance.timestamp_basis,
+        historical_availability_guarantee=provenance.historical_availability_guarantee,
+        provenance_version=provenance.provenance_version,
         raw_payload_hash=raw_hash, content_hash=content_hash, title_key=title_key,
-        ml_eligible=not reasons, ml_ineligible_reason=";".join(reasons) or None,
+        canonical_story_id=article_id, ml_eligible=ml_eligible,
+        ml_ineligible_reason=ineligible_reason,
         raw_payload=item.raw_payload)
