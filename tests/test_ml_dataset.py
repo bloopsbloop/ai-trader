@@ -8,7 +8,7 @@ import pytest
 from app.ml.dataset import (DatasetBuilder, DatasetConfig, LeakageSafePreprocessor,
                             chronological_split, walk_forward_splits)
 from app.ml.features import INTERVAL_MINUTES, candle_features, merge_multitimeframe
-from app.ml.news_features import NEWS_FEATURES, aggregate_news
+from app.ml.news_features import NEWS_FEATURES, NEWS_FEATURES_V2, aggregate_news
 
 
 def candles(count=160, minutes=15, future_jump=0):
@@ -110,8 +110,8 @@ def test_with_news_and_without_news_have_same_market_rows(tmp_path):
     without, without_features, _ = DatasetBuilder(config(tmp_path, False)).build()
     with_news, with_features, metadata = DatasetBuilder(config(tmp_path, True)).build()
     assert len(without) == len(with_news)
-    assert not set(NEWS_FEATURES) & set(without_features)
-    assert set(NEWS_FEATURES) <= set(with_features)
+    assert not set(NEWS_FEATURES_V2) & set(without_features)
+    assert set(NEWS_FEATURES_V2) <= set(with_features)
     assert metadata["news"]["historical_observations_present"] is False
 
 

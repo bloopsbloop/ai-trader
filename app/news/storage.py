@@ -114,6 +114,16 @@ class NewsArchive:
                     updated_at TEXT NOT NULL,
                     PRIMARY KEY(source, query_hash, window_start, window_end)
                 );
+                CREATE TABLE IF NOT EXISTS news_coverage_intervals (
+                    source TEXT NOT NULL,
+                    query_hash TEXT NOT NULL,
+                    window_start TEXT NOT NULL,
+                    window_end TEXT NOT NULL,
+                    symbols_json TEXT NOT NULL,
+                    availability_guaranteed INTEGER NOT NULL,
+                    provenance_version TEXT NOT NULL,
+                    PRIMARY KEY(source,query_hash,window_start,window_end,symbols_json)
+                );
             """)
             versions = connection.execute("SELECT schema_version FROM archive_identity").fetchall()
             if versions and versions not in ([(1,)], [(2,)]):
@@ -279,3 +289,21 @@ class NewsArchive:
         with self.connect() as connection:
             return dict(connection.execute(
                 "SELECT lower(status),COUNT(*) FROM news_backfill_checkpoints GROUP BY lower(status)"))
+
+    def save_coverage_interval(self, source, query_hash, start, end, symbols,
+                               availability_guaranteed, provenance_version):
+        with self.connect() as connection:
+            connection.execute("""
+                INSERT OR REPLACE INTO news_coverage_intervals VALUES (?,?,?,?,?,?,?)
+            """, (source, query_hash, start, end, json.dumps(sorted(symbols)),
+                  int(availability_guaranteed), provenance_version))
+
+    def coverage_intervals(self):
+        with self.connect() as connection:
+            connection.row_factory = sqlite3.Row
+            rows = [dict(row) for row in connection.execute(
+                "SELECT * FROM news_coverage_intervals ORDER BY window_start,source")]
+        for row in rows:
+            row["symbols"] = json.loads(row.pop("symbols_json"))
+            row["availability_guaranteed"] = bool(row["availability_guaranteed"])
+        return rows

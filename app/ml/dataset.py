@@ -13,12 +13,14 @@ import pandas as pd
 
 from app.ml.features import (FEATURE_VERSION, INTERVAL_MINUTES, candle_features,
                              market_feature_names, merge_multitimeframe)
-from app.ml.news_features import NEWS_FEATURES, aggregate_news, load_news_sqlite
+from app.ml.news_features import (NEWS_FEATURES_V2, NewsFeatureConfig,
+                                  aggregate_archive_news, coverage_statistics,
+                                  feature_metadata, load_archive)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_HISTORY = PROJECT_ROOT / "data" / "history"
 DEFAULT_OUTPUT = PROJECT_ROOT / "data" / "ml" / "datasets"
-DEFAULT_NEWS_DB = PROJECT_ROOT / "data" / "ai" / "batch3.sqlite3"
+DEFAULT_NEWS_DB = PROJECT_ROOT / "data" / "news" / "archive.sqlite3"
 
 
 def _utc_timestamp(value):
@@ -185,14 +187,15 @@ class DatasetBuilder:
         frame = pd.concat(rows, ignore_index=True).dropna(subset=["future_close", "target_timestamp"])
         features = market_feature_names(frame)
         if self.config.with_news:
-            news = load_news_sqlite(Path(self.config.news_db))
-            frame = pd.concat([frame, aggregate_news(frame, news)], axis=1)
+            news, coverage_intervals = load_archive(Path(self.config.news_db))
+            frame = pd.concat([frame, aggregate_archive_news(
+                frame, news, coverage_intervals, NewsFeatureConfig())], axis=1)
         frame = chronological_split(frame.sort_values(["timestamp", "symbol"]).reset_index(drop=True),
                                     self.config.train_fraction, self.config.validation_fraction)
         if self.config.with_news:
-            features += [name for name in NEWS_FEATURES if name in frame]
-        # Require complete market data. News zeros mean observed absence/unavailable coverage, not invented events.
-        frame = frame.dropna(subset=[name for name in features if name not in NEWS_FEATURES]).reset_index(drop=True)
+            features += [name for name in NEWS_FEATURES_V2 if name in frame]
+        # Coverage flags distinguish observed zero news from unavailable coverage.
+        frame = frame.dropna(subset=[name for name in features if name not in NEWS_FEATURES_V2]).reset_index(drop=True)
         metadata = self.metadata(frame, features)
         preprocessor = LeakageSafePreprocessor().fit(frame[frame["split"] == "train"], features)
         metadata["preprocessing"] = preprocessor.metadata()
@@ -205,7 +208,7 @@ class DatasetBuilder:
             periods[split] = {"start": group["timestamp"].min().isoformat(), "end": group["timestamp"].max().isoformat(),
                               "rows": len(group)}
             classes[split] = {str(key): int(value) for key, value in group["label"].value_counts().sort_index().items()}
-        news_present = self.config.with_news and bool(frame[NEWS_FEATURES].to_numpy().sum())
+        news_present = self.config.with_news and bool(frame["eligible_news_count_recent"].sum())
         walk_forward = [{"fold": item["fold"], "train_rows": len(item["train"]),
                          "validation_rows": len(item["validation"]),
                          "train_end": item["train_end"], "validation_start": item["validation_start"],
@@ -222,8 +225,14 @@ class DatasetBuilder:
                 "walk_forward": walk_forward,
                 "rows": len(frame), "class_distribution": classes,
                 "feature_count": len(features), "features": features,
-                "news": {"included": self.config.with_news, "historical_observations_present": news_present,
-                         "limitation": None if news_present else ("No scored historical news overlaps the candle period; news columns represent zero observed events, not fabricated coverage." if self.config.with_news else None)},
+                "news": {"included": self.config.with_news,
+                         "variant": "WITH_NEWS_V2" if self.config.with_news else "WITHOUT_NEWS",
+                         "historical_observations_present": news_present,
+                         "feature_contract": feature_metadata() if self.config.with_news else None,
+                         "coverage_statistics": coverage_statistics(frame) if self.config.with_news else None,
+                         "full_rows": len(frame),
+                         "coverage_filtered_rows": int(frame["row_news_eligible_for_training"].sum()) if self.config.with_news else None,
+                         "limitation": None if news_present else ("No eligible archive news overlaps the candle period; coverage flags remain explicit." if self.config.with_news else None)},
                 "holdout_limitation": "2023-2025 history was previously viewed by project research; test is chronologically isolated for ML v1 but is not a pristine project-wide holdout."}
 
 
@@ -258,12 +267,32 @@ def main(argv=None):
         config = DatasetConfig(symbols=tuple(args.symbols or DatasetConfig.symbols), base_timeframe=args.timeframe,
                                horizon_candles=args.horizon, start=args.start, end=args.end, with_news=with_news,
                                history_dir=args.history_dir, news_db=args.news_db)
-        frame, features, metadata = DatasetBuilder(config).build()
-        name = f"ml_v1_{args.timeframe}_{'with_news' if with_news else 'without_news'}"
-        csv_path, metadata_path = export_dataset(frame, metadata, args.output, name)
-        summaries.append({"variant": name, "rows": len(frame), "features": len(features),
-                          "dataset": str(csv_path), "metadata": str(metadata_path),
-                          "periods": metadata["periods"], "class_distribution": metadata["class_distribution"]})
+        builder = DatasetBuilder(config)
+        frame, features, metadata = builder.build()
+        if with_news:
+            name = f"ml_v1_{args.timeframe}_with_news_v2_full"
+            csv_path, metadata_path = export_dataset(frame, metadata, args.output, name)
+            summaries.append({"variant": "FULL_WITH_NEWS_FEATURES", "rows": len(frame), "features": len(features),
+                              "dataset": str(csv_path), "metadata": str(metadata_path),
+                              "periods": metadata["periods"], "class_distribution": metadata["class_distribution"]})
+            filtered = frame[frame["row_news_eligible_for_training"]].reset_index(drop=True)
+            filtered_metadata = builder.metadata(filtered, features)
+            filtered_metadata["dataset_view"] = "COVERAGE_FILTERED_WITH_NEWS"
+            filtered_metadata["source_full_dataset_rows"] = len(frame)
+            if not filtered.empty and not filtered[filtered["split"] == "train"].empty:
+                filtered_metadata["preprocessing"] = LeakageSafePreprocessor().fit(
+                    filtered[filtered["split"] == "train"], features).metadata()
+            filtered_csv, filtered_meta = export_dataset(
+                filtered, filtered_metadata, args.output, f"ml_v1_{args.timeframe}_with_news_v2_coverage_filtered")
+            summaries.append({"variant": "COVERAGE_FILTERED_WITH_NEWS", "rows": len(filtered),
+                              "features": len(features), "dataset": str(filtered_csv),
+                              "metadata": str(filtered_meta)})
+        else:
+            name = f"ml_v1_{args.timeframe}_without_news"
+            csv_path, metadata_path = export_dataset(frame, metadata, args.output, name)
+            summaries.append({"variant": "WITHOUT_NEWS", "rows": len(frame), "features": len(features),
+                              "dataset": str(csv_path), "metadata": str(metadata_path),
+                              "periods": metadata["periods"], "class_distribution": metadata["class_distribution"]})
     print(json.dumps(summaries, indent=2))
 
 

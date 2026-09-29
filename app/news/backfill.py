@@ -37,6 +37,11 @@ def run_backfill(archive, adapter, start, end, symbols=("BTC", "ETH", "SOL"), li
     for index, (window_start, window_end) in enumerate(intervals):
         start_key, end_key = window_start.isoformat(), window_end.isoformat()
         if resume and archive.checkpoint_complete(adapter.source_name(), query_hash, start_key, end_key):
+            provenance = adapter.provenance() if hasattr(adapter, "provenance") else None
+            if provenance:
+                archive.save_coverage_interval(adapter.source_name(), query_hash, start_key, end_key,
+                                               symbols, provenance.historical_availability_guarantee,
+                                               provenance.provenance_version)
             total["windows_skipped"] += 1
             continue
         empty = {"fetched": 0, "inserted": 0, "duplicates": 0}
@@ -47,6 +52,11 @@ def run_backfill(archive, adapter, start, end, symbols=("BTC", "ETH", "SOL"), li
             normalized = [adapter.normalize(item, collected, historical_import=True) for item in raw]
             stats = archive.ingest(normalized)
             archive.save_checkpoint(adapter.source_name(), query_hash, start_key, end_key, stats)
+            provenance = adapter.provenance() if hasattr(adapter, "provenance") else None
+            if provenance:
+                archive.save_coverage_interval(adapter.source_name(), query_hash, start_key, end_key,
+                                               symbols, provenance.historical_availability_guarantee,
+                                               provenance.provenance_version)
         except RateLimited:
             archive.save_checkpoint(adapter.source_name(), query_hash, start_key, end_key, empty, "RATE_LIMITED")
             total["windows_rate_limited"] += 1

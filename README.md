@@ -1,5 +1,18 @@
 # AI Trader
 
+## Milestone 12.3 — leakage-safe historical news features
+
+`WITH_NEWS_V2` joins the canonical archive to 1h ML samples using only
+`availability_timestamp <= T`. It produces full and coverage-filtered views while
+leaving the existing market-only dataset unchanged.
+
+```powershell
+python -m app.ml.news_features
+python -m app.ml.dataset --with-news --timeframe 1h --news-db data/news/archive.sqlite3
+```
+
+See [`docs/MILESTONE_12_3_NEWS_FEATURES.md`](docs/MILESTONE_12_3_NEWS_FEATURES.md).
+
 ## Milestone 12.2 — provenance and historical expansion
 
 The news archive now records an explicit information-availability timestamp and
