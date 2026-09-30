@@ -67,6 +67,7 @@ class CrossAssetConfig:
     history_dir: str = str(DEFAULT_HISTORY)
     output_dir: str = str(DEFAULT_OUTPUT)
     dataset_version: str = DATASET_VERSION
+    candidate_symbols: tuple[str, ...] | None = None
 
     def __post_init__(self):
         if self.horizon_hours < 1:
@@ -276,6 +277,8 @@ class CrossAssetDatasetBuilder:
 
     def build(self):
         coverage = discover_universe(self.config.history_dir, self.config.start, self.config.end, self.config.minimum_coverage)
+        if self.config.candidate_symbols is not None:
+            coverage = coverage[coverage["symbol"].isin(self.config.candidate_symbols)].reset_index(drop=True)
         symbols = coverage.loc[coverage["included"], "symbol"].tolist()
         if "BTCUSDT" not in symbols or len(symbols) < 2:
             raise ValueError("Cross-asset research requires BTCUSDT and at least one comparison asset")
@@ -339,7 +342,7 @@ class CrossAssetDatasetBuilder:
         excluded = coverage[~coverage["included"]][["symbol", "exclusion_reason"]].to_dict("records")
         market_features = [name for name in features if name not in CROSS_ASSET_FEATURES + MARKET_CONTEXT_FEATURES]
         return {
-            "dataset_version": DATASET_VERSION, "created_at": datetime.now(timezone.utc).isoformat(),
+            "dataset_version": self.config.dataset_version, "created_at": datetime.now(timezone.utc).isoformat(),
             "research_only": True, "config": asdict(self.config), "symbols": included,
             "excluded_symbols": excluded, "timeframes": list(REQUIRED_TIMEFRAMES), "decision_grid": "1h closed candles",
             "point_in_time_universe": {"rule": "all required timeframes present, coverage threshold met, all feature values available at T",
@@ -369,7 +372,7 @@ class CrossAssetDatasetBuilder:
 def export_artifacts(frame, metadata, coverage, output_dir):
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
-    dataset = output / "cross_asset_v1.csv.gz"
+    dataset = output / f"{metadata['dataset_version'].replace('-', '_')}.csv.gz"
     frame.to_csv(dataset, index=False, compression="gzip", float_format="%.10g")
     (output / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     point_in_time = frame.groupby("timestamp", sort=True).agg(
@@ -378,7 +381,7 @@ def export_artifacts(frame, metadata, coverage, output_dir):
     ).reset_index()
     point_in_time.to_csv(output / "universe.csv", index=False)
     coverage.to_csv(output / "symbol_coverage.csv", index=False)
-    coverage_payload = {"dataset_version": DATASET_VERSION, "symbols": coverage.to_dict("records")}
+    coverage_payload = {"dataset_version": metadata["dataset_version"], "symbols": coverage.to_dict("records")}
     (output / "coverage.json").write_text(json.dumps(coverage_payload, indent=2), encoding="utf-8")
     frame.groupby("split", group_keys=False).head(5).to_csv(output / "sample_rows.csv", index=False)
     return {"dataset": str(dataset), "metadata": str(output / "metadata.json"),
