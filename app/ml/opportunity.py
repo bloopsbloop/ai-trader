@@ -40,8 +40,9 @@ def clean(value):
 class OpportunityRanker:
     family = "sklearn_hist_gradient_boosting_regressor"
 
-    def __init__(self, features, parameters=None, medians=None):
+    def __init__(self, features, parameters=None, medians=None, target_name=TARGET):
         self.features = list(features)
+        self.target_name = target_name
         self.parameters = dict(DEFAULT_PARAMETERS | dict(parameters or {}))
         self.medians = dict(medians or {})
         self.estimator = HistGradientBoostingRegressor(**self.parameters)
@@ -57,7 +58,7 @@ class OpportunityRanker:
     def fit(self, frame):
         if set(frame.get("split", [])) - {"train"}:
             raise ValueError("Ranker fitting accepts train rows only")
-        self.estimator.fit(self._matrix(frame, fit=True), frame[TARGET].to_numpy(dtype=float))
+        self.estimator.fit(self._matrix(frame, fit=True), frame[self.target_name].to_numpy(dtype=float))
         return self
 
     def predict(self, frame):
@@ -65,13 +66,13 @@ class OpportunityRanker:
 
     def save(self, path):
         path = Path(path); path.parent.mkdir(parents=True, exist_ok=True)
-        joblib.dump({"features": self.features, "parameters": self.parameters,
+        joblib.dump({"features": self.features, "parameters": self.parameters, "target_name": self.target_name,
                      "medians": self.medians, "estimator": self.estimator}, path)
         return path
 
     @classmethod
     def load(cls, path):
-        payload = joblib.load(path); result = cls(payload["features"], payload["parameters"], payload["medians"])
+        payload = joblib.load(path); result = cls(payload["features"], payload["parameters"], payload["medians"], payload.get("target_name", TARGET))
         result.estimator = payload["estimator"]
         return result
 
@@ -121,10 +122,20 @@ def ranking_metrics(ranked):
                        if group["predicted_net_return"].nunique() > 1 and group[TARGET].nunique() > 1 else np.nan),
         include_groups=False).dropna()
     actual_rank = winners["future_return_rank"].to_numpy(float)
+    ndcg1=[]; ndcg3=[]
+    for _,group in ranked.groupby("timestamp",sort=False):
+        actual=group[TARGET].to_numpy(float); relevance=np.maximum(actual-actual.min(),0)
+        predicted_order=np.argsort(-group["predicted_net_return"].to_numpy(float)); ideal=np.argsort(-relevance)
+        def score(k):
+            discounts=1/np.log2(np.arange(2,k+2)); dcg=float((relevance[predicted_order[:k]]*discounts).sum()); best=float((relevance[ideal[:k]]*discounts).sum())
+            return dcg/best if best>0 else 1.
+        ndcg1.append(score(1));ndcg3.append(score(min(3,len(group))))
     return {"top_1_accuracy": float((actual_rank == 1).mean()), "top_2_accuracy": float((actual_rank <= 2).mean()),
+            "top_3_accuracy":float((actual_rank<=3).mean()),
             "mean_actual_rank_of_predicted_winner": float(actual_rank.mean()),
             "mean_reciprocal_rank": float((1 / actual_rank).mean()),
             "average_spearman": float(correlations.mean()), "median_spearman": float(correlations.median()),
+            "ndcg_at_1":float(np.mean(ndcg1)),"ndcg_at_3":float(np.mean(ndcg3)),
             "winner_positive_rate": float((winners[TARGET] > 0).mean()),
             "winner_profitable_rate": float(winners["is_positive_after_costs"].mean()),
             "timestamps": int(ranked["timestamp"].nunique())}
@@ -176,9 +187,10 @@ def select_threshold(validation_ranked, minimum_trades=100):
     return max(candidates,key=lambda x:(x["score"],x["trading"]["trades"])),candidates
 
 
-def selection_distribution(ledger, total_slots):
+def selection_distribution(ledger, total_slots, symbols=None):
     counts=ledger["symbol"].value_counts() if not ledger.empty else pd.Series(dtype=int)
-    rows=[{"selection":symbol,"count":int(counts.get(symbol,0)),"percentage":float(counts.get(symbol,0)/total_slots)} for symbol in ("BTCUSDT","ETHUSDT","SOLUSDT")]
+    symbols=list(symbols or sorted(counts.index))
+    rows=[{"selection":symbol,"count":int(counts.get(symbol,0)),"percentage":float(counts.get(symbol,0)/total_slots)} for symbol in symbols]
     rows.append({"selection":"NO_TRADE","count":int(total_slots-len(ledger)),"percentage":float((total_slots-len(ledger))/total_slots)})
     return pd.DataFrame(rows)
 
@@ -191,15 +203,15 @@ def decision_distribution(ranked, threshold):
     total = len(winners)
     rows = [{"selection": symbol, "count": int(counts.get(symbol, 0)),
              "percentage": float(counts.get(symbol, 0) / total)}
-            for symbol in ("BTCUSDT", "ETHUSDT", "SOLUSDT")]
+            for symbol in sorted(ranked["symbol"].unique())]
     rows.append({"selection": "NO_TRADE", "count": int(total - len(selected)),
                  "percentage": float((total - len(selected)) / total)})
     return pd.DataFrame(rows)
 
 
-def per_symbol_results(ledger):
+def per_symbol_results(ledger, symbols=None):
     rows=[]
-    for symbol in ("BTCUSDT","ETHUSDT","SOLUSDT"):
+    for symbol in list(symbols or sorted(ledger["symbol"].unique())):
         group=ledger[ledger["symbol"]==symbol] if not ledger.empty else ledger
         rows.append({"symbol":symbol,"selection_count":len(group),"win_rate":float((group["actual_net_return"]>0).mean()) if len(group) else 0.,
                      "average_return":float(group["actual_net_return"].mean()) if len(group) else 0.,"pnl_contribution":float(group["pnl"].sum()) if len(group) else 0.})

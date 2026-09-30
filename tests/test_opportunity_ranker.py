@@ -89,7 +89,7 @@ def test_non_overlapping_simulation_and_no_trade():
 
 def test_selection_distribution_includes_no_trade():
     ranked=ranked_predictions(dataset(20),dataset(20).future_net_return_4h)
-    _,ledger=simulate(ranked,-np.inf); result=selection_distribution(ledger,20)
+    _,ledger=simulate(ranked,-np.inf); result=selection_distribution(ledger,20,("BTCUSDT","ETHUSDT","SOLUSDT"))
     assert set(result.selection)=={"BTCUSDT","ETHUSDT","SOLUSDT","NO_TRADE"}
     assert result["count"].sum()==20
 
