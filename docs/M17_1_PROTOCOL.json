@@ -1,0 +1,131 @@
+{
+  "version": "m17.1-absolute-trend-v1",
+  "frozen_at": "2026-10-01",
+  "research_only": true,
+  "duplicate_audit": {
+    "decision": "NOT_DUPLICATE",
+    "evidence": "Batch 2 Donchian used isolated symbols, 10/5-55/20 parameters, 15% exposure, current-close fills, no seven-sleeve portfolio or 120/60 rule."
+  },
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "LINKUSDT",
+    "DOGEUSDT"
+  ],
+  "timeframe": "4h",
+  "data_period": [
+    "2023-01-01T00:00:00Z",
+    "2025-12-31T20:00:00Z"
+  ],
+  "data_hashes": {
+    "BTCUSDT": "7db04ec87fd229d325cab5e8082ce979bbf031c811a9d4434814d3082860a519",
+    "ETHUSDT": "8f8d2bc574d780dd192adddfd034d3663816bd9187b40262074e5c5eb9dd0bb2",
+    "SOLUSDT": "385bee74be3d6fff2fab26418a889b0e924f55e8db41e1f89ed4dda94ead0d0d",
+    "BNBUSDT": "ff1d474ad38b78cc05bbc6a481892d9e48ec044c1fb1e9db4dea4171afe7ca4a",
+    "XRPUSDT": "5ec2cd7ea78ecd598551bb1f4faca736735e2c9a6296b70b9fef1ec1f3ff26db",
+    "LINKUSDT": "6c229dedfd2ba9c8101fa71ea5262795d808fcf4cfb0807628615882ebd93cae",
+    "DOGEUSDT": "6baabfa57dbf82ba84211003d7276f470d71afcf30459129076b373178fea625"
+  },
+  "timestamp_semantics": "open_time is candle open UTC; signal becomes available at open_time+4h after close; fill only at next consecutive candle open",
+  "warmup_bars": 120,
+  "economic_start": "2023-01-21T00:00:00Z",
+  "entry": "close(T) > maximum high of previous 120 closed 4h candles, excluding T",
+  "exit": "close(T) < minimum low of previous 60 closed 4h candles, excluding T",
+  "execution": "next consecutive 4h candle open; pending signal canceled if next open is unavailable or not exactly 4h later; no stale execution",
+  "position": "long-only flat/long; no leverage, short, pyramiding, stop, target, scaling, ML, ranking, regime or news gate",
+  "portfolio": {
+    "initial_capital": 1000,
+    "sleeves": 7,
+    "initial_per_sleeve": 142.85714285714286,
+    "cash_transfer": false,
+    "rebalancing": false
+  },
+  "costs": {
+    "base_commission_per_side": 0.0004,
+    "base_slippage_per_side": 0.0005,
+    "stress_multiplier": 2,
+    "zero_cost": "decomposition only"
+  },
+  "terminal": "liquidate open positions at final available close with scenario slippage and commission; buy-and-hold uses identical terminal rule",
+  "gap_policy": "do not synthesize bars; cancel pending order when next bar is not consecutive; hold positions through gaps and mark at last known close on the union grid; no stale entry/exit after gap",
+  "split_rounding": "ceil original split start to next 4h open: validation 2024-10-21T04:00Z, reused Test 2025-05-27T12:00Z",
+  "splits": {
+    "train": [
+      "2023-01-21T00:00:00Z",
+      "2024-10-21T00:00:00Z"
+    ],
+    "validation": [
+      "2024-10-21T04:00:00Z",
+      "2025-05-27T08:00:00Z"
+    ],
+    "test": [
+      "2025-05-27T12:00:00Z",
+      "2025-12-31T20:00:00Z"
+    ]
+  },
+  "walk_forward_evaluations": [
+    {
+      "fold": 1,
+      "start": "2024-07-03T16:00:00Z",
+      "end": "2025-01-02T00:00:00Z"
+    },
+    {
+      "fold": 2,
+      "start": "2025-01-02T04:00:00Z",
+      "end": "2025-07-03T16:00:00Z"
+    },
+    {
+      "fold": 3,
+      "start": "2025-07-03T20:00:00Z",
+      "end": "2025-12-31T16:00:00Z"
+    }
+  ],
+  "primary_path": "continuous portfolio with carried positions; window returns use mark-to-market boundary values",
+  "secondary_walk_forward": "separate restarted-from-cash runs with historical warmup; no fit or retuning",
+  "baselines": [
+    "equal-sleeve buy-and-hold from economic_start with next-open-equivalent start fill and terminal liquidation",
+    "cash"
+  ],
+  "metrics": [
+    "net/gross return",
+    "annualized return",
+    "mean daily return",
+    "completed-trade expectancy",
+    "profit factor",
+    "trades",
+    "time in market",
+    "average/max exposure",
+    "turnover",
+    "holding duration",
+    "mark-to-market max drawdown and duration",
+    "symbol/window results"
+  ],
+  "bootstrap": {
+    "input": "synchronized UTC daily portfolio returns",
+    "method": "timestamp block sums/counts",
+    "primary_days": 14,
+    "sensitivity_days": [
+      7,
+      28
+    ],
+    "repetitions": 5000,
+    "seed": 42
+  },
+  "criteria": {
+    "PROMISING_ECONOMIC_HYPOTHESIS": "positive reused-Test net and supported positive mean daily CI; >=2/3 positive fixed windows; positive total under doubled costs; no one-symbol masking negative aggregate others",
+    "WEAK": "some positive evidence without all promising criteria",
+    "NO_ECONOMIC_EDGE": "otherwise"
+  },
+  "limitations": [
+    "fixed-universe survivorship",
+    "history already studied",
+    "not untouched confirmation",
+    "no historical spread/depth/filter reconstruction",
+    "no min-notional or quantity rounding",
+    "4h close marks are not intrabar/tick risk"
+  ],
+  "deviations": []
+}

@@ -1,0 +1,42 @@
+{
+  "milestone": "M17.1",
+  "status": "WEAK",
+  "generated_at": "2026-10-01",
+  "command": ".venv\\Scripts\\python.exe -m app.research.absolute_trend",
+  "test_result": "282 passed, 3 third-party deprecation warnings in 36.71s",
+  "protocol_sha256": "19b840a5ad7c618f745321f903d3b8bfab912c9d3eb2da2eb00dfd90b1f1095b",
+  "tracked_files": {
+    "app/research/absolute_trend.py": "e2a2e5f5136e385fe3f5e213d1e5703cb27b6986628c1ccfe287ec3419a9ae68",
+    "tests/test_absolute_trend.py": "6220debe5b04ff43cef89e5d41a114a891c5c0381d433098a7707514571695da",
+    "docs/M17_1_PROTOCOL.json": "19b840a5ad7c618f745321f903d3b8bfab912c9d3eb2da2eb00dfd90b1f1095b",
+    "docs/M17_1_REPORT.md": "0821167a9eb08206ce42cc92c8a9315c1d8ab4abb2facb6c741b8ad52cbba518",
+    "requirements.txt": "11e38a9816c14108bd15cdcc0f769c397c6b6bdd7ae9623bf1287dad9c2ab123"
+  },
+  "generated_artifacts": {
+    "baselines.csv": {"bytes": 570, "sha256": "3d3ea24a5183fb6c5f0f57b566544a39eb6a75792ea3becaa0f64b12bc653a46"},
+    "bootstrap.csv": {"bytes": 602, "sha256": "e6d434ea5d29dcacf34347b967caf56c7761be45c95052725c347f499b17664e"},
+    "cost_scenarios.csv": {"bytes": 1115, "sha256": "423085934db4a509cb19b2889514e54712e9f8bc5c530dba79196fc5800bb7d8"},
+    "daily_returns.csv": {"bytes": 70914, "sha256": "13b8732174e35a479e8cb551a1cb952f73e69fe63da07540ca71e78e0734a162"},
+    "fills.csv": {"bytes": 35355, "sha256": "a3efe986d0674cfaac447a89e2c1ddc2aa2d7b145c6cc7b0cc31707c0c433370"},
+    "portfolio_equity.csv": {"bytes": 1764093, "sha256": "d82841d39c4a6acd6ba989c61d0896bbd1c3ec38d2773582d98a8c5445fae7c4"},
+    "protocol.json": {"bytes": 4937, "sha256": "19b840a5ad7c618f745321f903d3b8bfab912c9d3eb2da2eb00dfd90b1f1095b"},
+    "restarted_folds.csv": {"bytes": 1279, "sha256": "2b1206856a81ebc3564c89cf225573d9740a8c7dbd6b024f970e9512fb7edb05"},
+    "signals.csv": {"bytes": 9882, "sha256": "52d4d5f3c45bcb228ff1d19fc8a569517d321f4aca0ee36ad3e0a3e21587e672"},
+    "sleeve_equity.csv": {"bytes": 3514790, "sha256": "fedb641afb8a009aecbf622569bf9dfe89d1702662c98395b3cb453cab92435b"},
+    "summary.json": {"bytes": 14366, "sha256": "7b04f41395f8cabb16ff0ddad4fa748a1c3c25c2c3439dff16fd0c532ba9230d"},
+    "symbol_results.csv": {"bytes": 2423, "sha256": "d2d97851e8cd5e1a5736f5fd210e4e297f3b0956db56312ddc39d8bb6f347a71"},
+    "trades.csv": {"bytes": 18807, "sha256": "7d29d0cffccec10eb48c2767c7c9f9d7a3dafd9e8f5590a2cd739b2bb73375d6"},
+    "window_results.csv": {"bytes": 492, "sha256": "01f7d0658fc745dfa17f244eac7bf4841135870fb19d0e5c27c12b11e381ad7e"}
+  },
+  "scope": {
+    "local_only": true,
+    "oracle_changed": false,
+    "server_changed": false,
+    "live_trading_changed": false,
+    "batch_1_2_3_changed": false,
+    "sqlite_changed": false,
+    "git_commit_created": false,
+    "git_push_performed": false,
+    "new_market_data_downloaded": false
+  }
+}

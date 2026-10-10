@@ -1,0 +1,103 @@
+{
+  "version": "m17.1r-temporal-accounting-v1",
+  "created_at": "2026-10-10",
+  "status": "WEAK",
+  "tracked_files": {
+    "app\\research\\absolute_trend.py": "8892e131e873a53f0ed00235c906c661fa4ccffe258f3d5780d6a7494938b9c1",
+    "tests\\test_absolute_trend.py": "3426de577edc9d7efd41da5ae7fd23eaf5289b9c340cdcc99842c3cb78223ae5",
+    "docs\\M17_1R_ADDENDUM.md": "41632fb8f4f5680dd2a614e256b7d5348732683625a0862b42db29fdb980323b",
+    "docs\\M17_1R_REPORT.md": "02e1014a5a90d3bb21bdf2a0ceafa6317b1fc50ca94cba73f3de2e8267fee001",
+    "docs\\M17_1R_BASELINE_HASHES.json": "32aef0ed57ce84b621a90b90612d97cba41b88fccf8d4b2a9a2afbd57c2faa54",
+    "docs\\M17_1_PROTOCOL.json": "19b840a5ad7c618f745321f903d3b8bfab912c9d3eb2da2eb00dfd90b1f1095b",
+    "requirements.txt": "11e38a9816c14108bd15cdcc0f769c397c6b6bdd7ae9623bf1287dad9c2ab123"
+  },
+  "corrected_artifacts": {
+    "data\\research\\m17_1_review_corrections_v1\\baselines.csv": {
+      "bytes": 569,
+      "sha256": "d546cd0f3bb30fba76e365bd87bf703d82e4098f59d952eed95c728884a50953"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\bootstrap.csv": {
+      "bytes": 684,
+      "sha256": "9754aa03aada8b6652630ba370bfdf8f4e6924655a202d2e9efca094738e1537"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\bootstrap_blocks.csv": {
+      "bytes": 55737,
+      "sha256": "5be29ec9ddf803fb47c7285b636031439c5ee6458a334ca169ea6f97de52b8dc"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\cost_scenarios.csv": {
+      "bytes": 1118,
+      "sha256": "043595e1b5d79175ce40e8c5ad46d62d255b73b001d46033275800003f2da991"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\daily_returns.csv": {
+      "bytes": 75700,
+      "sha256": "109cce8082a220c580f38f7cdc2ee87a05efb2b28325d00cdb0ada1e5b1b4457"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\data_audit.csv": {
+      "bytes": 1015,
+      "sha256": "58f1ba33076e3f2d107c0c97d44de1d81fa1d1f0aad7a2c8adf97a8d56f0ff16"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\fills.csv": {
+      "bytes": 42433,
+      "sha256": "80583c6aa116e4ae5c0d422aa5ae6475e7cbb619b3848e2683905201df82faa1"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\portfolio_equity.csv": {
+      "bytes": 1932207,
+      "sha256": "db34ed7e18f1dcc04f9b7f58230da16d80b1665d1be07812e5fdf83d707c75f4"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\protocol.json": {
+      "bytes": 4937,
+      "sha256": "19b840a5ad7c618f745321f903d3b8bfab912c9d3eb2da2eb00dfd90b1f1095b"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\restarted_folds.csv": {
+      "bytes": 1280,
+      "sha256": "8e5b5f897771a75bc8a6293424b731fb157138fb001117bfcc49318d36e61d58"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\signals.csv": {
+      "bytes": 29277,
+      "sha256": "0b2d4cf239310a5836919ed2e553f297c53124264cac569e53082410e8020187"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\sleeve_equity.csv": {
+      "bytes": 6136770,
+      "sha256": "10bcaafa7c286bc557dac527e700ac577e815caab84e6c28314672977174dd7d"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\summary.json": {
+      "bytes": 17263,
+      "sha256": "f150d2c5fce5d6f2af9a23505960108e06533bec5c9a67873df66365591232f4"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\symbol_results.csv": {
+      "bytes": 2425,
+      "sha256": "5d4c4bf9e1032029d443a62791c69a42d99e9fc49bfc29bda4a18c7d1868adbd"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\trades.csv": {
+      "bytes": 18807,
+      "sha256": "7d29d0cffccec10eb48c2767c7c9f9d7a3dafd9e8f5590a2cd739b2bb73375d6"
+    },
+    "data\\research\\m17_1_review_corrections_v1\\window_results.csv": {
+      "bytes": 492,
+      "sha256": "2d943a1a93f33156f8b0dca9155e62f0aabdfac713cb06ade28d4f38f756f690"
+    }
+  },
+  "protection": {
+    "baseline_hash_file": "docs\\M17_1R_BASELINE_HASHES.json",
+    "repeat_run_exit_code": 1,
+    "original_namespace_unchanged": true,
+    "corrected_namespace_unchanged_after_repeat": true
+  },
+  "tests": {
+    "m17_1r": "17 passed in 0.79s",
+    "full_pytest": "BLOCKED during collection: Windows Application Control error 4551 on sklearn _criterion; 11 collection errors",
+    "broad_non_ml": "192 passed, 4 failures; all 4 reach the same blocked sklearn DLL"
+  },
+  "scope": {
+    "local_only": true,
+    "oracle_changed": false,
+    "server_changed": false,
+    "live_trading_changed": false,
+    "batch_1_2_3_changed": false,
+    "sqlite_changed": false,
+    "env_file_changed": false,
+    "git_commit_created": false,
+    "git_push_performed": false,
+    "market_data_downloaded": false
+  }
+}
