@@ -1,0 +1,55 @@
+{
+  "version": "m18.2-execution-authorization-v1",
+  "created_at": "2026-10-10",
+  "source_commit": "3b261dad2c030a66d751d8fb4461bbee1efd78f3",
+  "frozen_protocol": {
+    "path": "docs/M18_1_EVALUATION_PROTOCOL.json",
+    "sha256": "0997c5ba7f63351bbf10ab6271aa6d996ce9232dfefd8a792e735d57e1449f5e",
+    "execution_authorized_field_remains": false
+  },
+  "authorization": {
+    "kind": "explicit user request in current task",
+    "title": "AI_TRADER — M18.2: Acquisition and One-Time Frozen Evaluation",
+    "captured_request_sha256": "555f8545367fe91fed53d5dae3a392e85592d6581d1a52868081b2d941a8d89e",
+    "acquisition_authorized": true,
+    "one_time_evaluation_authorized": true,
+    "trading_authorized": false
+  },
+  "provenance": "HOLDOUT_PROVENANCE_UNCERTAIN",
+  "result_label_correction": {
+    "historical_label": "PROMISING_INDEPENDENT_CANDIDATE",
+    "m18_2_label": "PROMISING_CANDIDATE_UNCERTAIN_PROVENANCE",
+    "criteria_changed": false
+  },
+  "bootstrap": {
+    "ordinary_two_sided_quantiles": [0.025, 0.975],
+    "bonferroni_two_sided_quantiles": [0.0125, 0.9875],
+    "claims": 2,
+    "nominal_simultaneous_coverage": 0.95,
+    "finite_sample_guarantee": false,
+    "primary_block_days": 28,
+    "sensitivity_block_days": [14, 56],
+    "repetitions": 5000,
+    "seed": 42
+  },
+  "overall_precedence": [
+    "BLOCKER",
+    "BOTH_POSITIVE_EVIDENCE_AND_STRESS_POSITIVE",
+    "EITHER_CO_PRIMARY_POINT_NONPOSITIVE",
+    "OTHERWISE_INCONCLUSIVE"
+  ],
+  "overall_statuses": {
+    "blocker": "preserve the specific DATA_ACQUISITION_BLOCKED or DATA_QUALITY_BLOCKED status",
+    "promising": "PROMISING_CANDIDATE_UNCERTAIN_PROVENANCE",
+    "no_combined": "NO_EVIDENCE_FOR_COMBINED_HYPOTHESIS",
+    "inconclusive": "PARTIAL_OR_INCONCLUSIVE"
+  },
+  "namespaces": {
+    "raw": "data/holdouts/m18_1_2026_jan_sep_v1/raw",
+    "normalized": "data/holdouts/m18_1_2026_jan_sep_v1/normalized",
+    "evaluation": "data/research/m18_1_frozen_strategy_evaluation_v1"
+  },
+  "overwrite": false,
+  "planned_evaluation_batches": 1,
+  "completed_evaluation_batches_at_freeze": 0
+}
