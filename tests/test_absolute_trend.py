@@ -5,6 +5,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from tests.artifact_manifest import assert_manifest_sha256
+
 from app.research.absolute_trend import (BAR, _prepare_output, _window_return, aggregate,
                                          block_summaries, buy_and_hold, channel_signals, daily_returns,
                                          drawdown_metrics, paired_block_bootstrap, simulate_sleeve,
@@ -167,4 +169,4 @@ def test_frozen_artifacts_match_review_baseline_hashes():
     baseline = json.loads((root / "docs/M17_1R_BASELINE_HASHES.json").read_text(encoding="utf-8"))
     for section in ("ohlcv", "m17_1_original", "m16_2_key", "m17_1_protocol"):
         for relative, expected in baseline[section].items():
-            assert hashlib.sha256((root / relative).read_bytes()).hexdigest() == expected
+            assert_manifest_sha256(root, relative, expected)
