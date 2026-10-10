@@ -1,0 +1,166 @@
+{
+  "version": "m18.1-frozen-strategy-independent-candidate-v1",
+  "frozen_at": "2026-10-10",
+  "research_only": true,
+  "execution_authorized": false,
+  "provenance_verdict": "HOLDOUT_PROVENANCE_UNCERTAIN",
+  "candidate_is_untouched": false,
+  "source_commit": "f35edc0fb2acc0cc7b1f989569d9135cb713ac08",
+  "strategy_source": {
+    "path": "app/research/absolute_trend.py",
+    "sha256": "8892e131e873a53f0ed00235c906c661fa4ccffe258f3d5780d6a7494938b9c1",
+    "m17_1_protocol_sha256": "19b840a5ad7c618f745321f903d3b8bfab912c9d3eb2da2eb00dfd90b1f1095b",
+    "m17_2_protocol_sha256": "7598fa6f8e3633a2650ad17461f8c9a543480f1215b5be98e2ea2d298adccf6c",
+    "m17_2_summary_sha256": "7718bea18b5834cf762eb14fbf302c230ee0537a6018dbdf803f7c22632834b9",
+    "published_m17_2_commit": "f35edc0fb2acc0cc7b1f989569d9135cb713ac08"
+  },
+  "hypothesis": "The unchanged Donchian 120/60 policy may have positive absolute net performance after costs and may add value relative to the frozen M17.2 train-calibrated passive portfolio; these are separate claims.",
+  "universe": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT",
+    "XRPUSDT",
+    "LINKUSDT",
+    "DOGEUSDT"
+  ],
+  "market": "Binance Spot USDT pairs",
+  "timeframe": "4h",
+  "evaluation": {
+    "path_start_inclusive": "2026-01-01T00:00:00Z",
+    "path_end_exclusive": "2026-10-01T00:00:00Z",
+    "first_evaluation_candle_open": "2026-01-01T00:00:00Z",
+    "last_evaluation_candle_open": "2026-09-30T20:00:00Z",
+    "expected_4h_candles_per_symbol": 1638,
+    "expected_full_daily_intervals": 273,
+    "selection_basis": "completed calendar months January through September 2026; selected before acquisition or strategy evaluation and not from returns",
+    "single_continuous_path": true,
+    "resets_inside_evaluation": false
+  },
+  "strategy": {
+    "entry": "at close(T), close(T) > maximum high of the previous 120 closed 4h candles, excluding T",
+    "exit": "at close(T), close(T) < minimum low of the previous 60 closed 4h candles, excluding T",
+    "execution": "fill only at the next exactly consecutive 4h candle open; cancel stale pending signals",
+    "position": "long-only flat/long; no leverage, short, pyramiding, stop, target, scaling, ML, ranking, news, regime or liquidity gate",
+    "initial_state": "flat at 2026-01-01T00:00:00Z with no inherited position or pending signal",
+    "warmup": {
+      "bars": 120,
+      "source_open_times": ["2025-12-12T00:00:00Z", "2025-12-31T20:00:00Z"],
+      "purpose": "indicator/channel history only",
+      "pre_start_signals_allowed": false,
+      "first_possible_signal_available": "2026-01-01T04:00:00Z",
+      "first_possible_fill": "2026-01-01T04:00:00Z"
+    }
+  },
+  "portfolio": {
+    "initial_capital": 1000.0,
+    "sleeves": 7,
+    "initial_per_sleeve": 142.85714285714286,
+    "independent_sleeves": true,
+    "cash_transfers": false,
+    "rebalancing": false
+  },
+  "benchmarks": {
+    "cash": "constant 1000 USDT, zero yield",
+    "buyhold_full": "100% initial capital divided equally across seven assets, one entry at path start, no rebalance, terminal liquidation",
+    "buyhold_calibrated": {
+      "description": "frozen fraction invested equally at path start, remainder held as zero-yield cash, no rebalance, terminal liquidation",
+      "lambda": 0.5923903262274034,
+      "source": "M17.2 main Train calibration",
+      "recalibration_on_2026": false,
+      "risk_warning": "realized evaluation-period risk is not forced to match strategy risk"
+    }
+  },
+  "costs": {
+    "base": {"commission_per_side": 0.0004, "slippage_per_side": 0.0005},
+    "double": {"commission_per_side": 0.0008, "slippage_per_side": 0.001},
+    "accounting": "actual traded notional on every entry and exit",
+    "primary_scenario": "base",
+    "double_role": "predefined robustness stress; secondary and unable to rescue a failed primary claim"
+  },
+  "terminal": "cancel pending orders and liquidate every open strategy and passive position at the 2026-09-30T20:00:00Z candle close, producing the 2026-10-01T00:00:00Z terminal equity mark with scenario costs",
+  "data_acquisition": {
+    "authorized_in_m18_1": false,
+    "primary_source": "Binance public monthly Spot kline archives",
+    "archive_base": "https://data.binance.vision/data/spot/monthly/klines",
+    "documentation": "https://github.com/binance/binance-public-data",
+    "files": "January through September 2026 monthly 4h archives and their official .CHECKSUM files for each frozen symbol",
+    "raw_namespace": "data/holdouts/m18_1_2026_jan_sep_v1/raw",
+    "normalized_namespace": "data/holdouts/m18_1_2026_jan_sep_v1/normalized",
+    "evaluation_namespace": "data/research/m18_1_frozen_strategy_evaluation_v1",
+    "overwrite": false,
+    "preservation": "preserve downloaded archives, official checksum files, archive SHA-256, retrieval UTC time, source URL and normalized-file SHA-256",
+    "fallback": "none; missing archives or checksum failures produce DATA_ACQUISITION_BLOCKED and require a versioned protocol review before another source is used"
+  },
+  "archive_schema": {
+    "columns": ["open_time", "open", "high", "low", "close", "volume", "close_time", "quote_asset_volume", "number_of_trades", "taker_buy_base_asset_volume", "taker_buy_quote_asset_volume", "ignore"],
+    "official_timestamp_note": "Binance public Spot archives use microsecond timestamps from 2025-01-01 onward; this must still be validated on every acquired file",
+    "timestamp_validation": "require integer open_time and close_time with microsecond magnitude for 2026; convert explicitly as UTC microseconds; reject ambiguous units, mixed units, overflow, non-UTC alignment or undocumented schema changes",
+    "interval_validation": "open_time must align to a UTC 4h boundary; close_time must represent the same 4h candle; open times must be unique and strictly increasing",
+    "value_validation": "exactly 12 fields; finite positive OHLC; low<=open/close<=high; nonnegative volume and trade count",
+    "range_validation": "evaluation open times must be exactly the common grid [2026-01-01T00:00:00Z, 2026-10-01T00:00:00Z) at 4h frequency"
+  },
+  "missing_data_policy": {
+    "common_grid_required": true,
+    "synthesize_bars": false,
+    "forward_fill_market_data": false,
+    "drop_symbols": false,
+    "on_any_missing_duplicate_or_misaligned_bar": "DATA_QUALITY_BLOCKED",
+    "evaluate_partial_period": false
+  },
+  "daily_endpoint": {
+    "marks": "UTC midnight equity marks including path start and terminal path end",
+    "expected_coverage": ["2026-01-01T00:00:00Z", "2026-10-01T00:00:00Z"],
+    "expected_return_endpoints": ["2026-01-02T00:00:00Z", "2026-10-01T00:00:00Z"],
+    "partial_boundary_intervals_expected": 0,
+    "reconciliation": "product(1+daily_returns) must equal final_equity/initial_equity within 1e-12"
+  },
+  "co_primary_questions": {
+    "absolute": "Strategy mean daily net return versus zero-yield cash under base costs",
+    "incremental": "paired mean daily net-return difference Strategy minus frozen-lambda calibrated passive under base costs"
+  },
+  "reported_metrics": [
+    "mean daily net return versus cash",
+    "paired mean daily difference versus calibrated passive",
+    "full-window net return",
+    "annualized return",
+    "mark-to-market maximum drawdown and duration",
+    "realized daily volatility",
+    "average and maximum exposure",
+    "turnover and commission/slippage costs",
+    "trade count and mean/median holding duration"
+  ],
+  "uncertainty": {
+    "method": "paired non-overlapping calendar-time block bootstrap using block sums and counts",
+    "primary_block_days": 28,
+    "sensitivity_block_days": [14, 56],
+    "repetitions": 5000,
+    "seed": 42,
+    "alignment": "exact complete UTC-day endpoints; no dropna and no mixing windows",
+    "expected_primary_blocks": 10,
+    "partial_final_block": "retain actual sum and count",
+    "raw_intervals": "two-sided 95% bootstrap intervals for each co-primary estimate",
+    "multiplicity": "two co-primary claims use Bonferroni simultaneous two-sided 97.5% intervals (1.25% and 98.75% quantiles); secondary comparisons are descriptive"
+  },
+  "calendar_subwindows": [
+    ["2026-01-01T00:00:00Z", "2026-04-01T00:00:00Z"],
+    ["2026-04-01T00:00:00Z", "2026-07-01T00:00:00Z"],
+    ["2026-07-01T00:00:00Z", "2026-10-01T00:00:00Z"]
+  ],
+  "subwindow_role": "descriptive stability slices of the single continuous path; no reset, refit, tuning or independent-evidence claim",
+  "decision_rules_document": "docs/M18_1_DECISION_RULES.md",
+  "provenance_document": "docs/M18_1_DATA_PROVENANCE.md",
+  "result_access_rule": "No acquisition or evaluation before protocol review and a separately authorized milestone. After first result access, no silent rerun, replacement window or parameter change is allowed.",
+  "implementation_correction_rule": "Any material defect found after opening data requires a versioned correction that preserves the original result and explicitly records loss of holdout cleanliness.",
+  "prospective_alternative": {
+    "period": ["2026-11-01T00:00:00Z", "2027-08-01T00:00:00Z"],
+    "status": "proposal only; requires separate review and protocol before monitoring or acquisition",
+    "substitution_rule": "cannot replace the 2026 January-September candidate after viewing its result"
+  },
+  "forbidden": [
+    "strategy, lookback, universe, cost, lambda, threshold or feature changes",
+    "optimizer, model training, benchmark search or post-result window selection",
+    "automatic paper, shadow or live promotion",
+    "overwriting frozen or newly acquired raw data"
+  ]
+}
