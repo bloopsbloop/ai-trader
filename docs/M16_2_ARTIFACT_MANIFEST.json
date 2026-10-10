@@ -1,0 +1,40 @@
+{
+  "version": "m16.2-native-ltr-v1",
+  "protocol_sha256": "a5f66c52a0eb6661b0c41467be20af93ac224b7e741bc5f17281d9b66ebd8e7f",
+  "protected_hashes": {
+    "data\\ml\\nextgen_target_v1\\dataset.csv.gz": "c2934209ad70c94d64741c8302696fe230223db5f94dd22b81d55f20058b44ca",
+    "data\\ml\\nextgen_target_v1\\metadata.json": "906091d1a559807fffbf6027232681f419efc3d6d069f55fcef1139a9537f6cb",
+    "data\\models\\nextgen_relative_8h_v1\\model.joblib": "d5ac273e21f4564599a85597ba18dc7bce209c2acdc095aafa877fc44f98e880",
+    "data\\models\\m16_1_ranking_objective_v1\\target_relative_vol_8h__ranking.joblib": "f251b584497ac2a54eea619ae68380b17699f2b6d5cb3ef8b0507da735be555b",
+    "data\\models\\m16_1_ranking_objective_v1\\target_relative_vol_8h__regression.joblib": "e0e4fa5a87b74d7412b3297f1fc8ae9ccbe377bb41821509d6f1df7953deded4",
+    "data\\ml\\reports\\m16_1_ranking_objective_v1\\protocol.json": "ecbcd6553432c45e68c5375a97200abdd912f7049634ef09e02114af8cd19533",
+    "data\\ml\\reports\\m16_1_review_corrections_v1\\summary.json": "af7c80868f343ed1580bb64bbcbbbad47fc3ea9118d27492b8eb4fb6ceea2955"
+  },
+  "models": {
+    "data\\models\\m16_2_native_ltr_v1\\main_ranking.json": "670927893256f2d9b860f41411c6c8a2ff0117c6ee13bbcb0523ed970108191c",
+    "data\\models\\m16_2_native_ltr_v1\\main_ranking.metadata.json": "4c03e5ba4a9c3c54d58f974ff99a2511997779f21aba6fcf613a7cf4de22e17e",
+    "data\\models\\m16_2_native_ltr_v1\\main_regression.json": "375ad9f5d5ad5226b1260c15dfd474e50e8ecd50deb937af847936f9ea1092aa",
+    "data\\models\\m16_2_native_ltr_v1\\main_regression.metadata.json": "2cb49cd931f5cb4da0ed7a4c33311f3af51d34da8de04ee81e485756a381c7b8",
+    "data\\models\\m16_2_native_ltr_v1\\fold_1\\ranking.json": "7737902767d7a06d5bf0e3aa9cf64a154f8c07c4029b0916a3cf477a4981cf08",
+    "data\\models\\m16_2_native_ltr_v1\\fold_1\\ranking.metadata.json": "77f7c9017a8114b249b03e275934bb0fa634c9c4b66b02e53f7c3da463c27943",
+    "data\\models\\m16_2_native_ltr_v1\\fold_1\\regression.json": "fed0a0971f05019f6bd18a7bf9c2394eabe44a805b4c5da8189e1a083906ebaf",
+    "data\\models\\m16_2_native_ltr_v1\\fold_1\\regression.metadata.json": "4b72b18e01942d9223027c3f5fa4cadeb67306167ed10903023cca438c650db8",
+    "data\\models\\m16_2_native_ltr_v1\\fold_2\\ranking.json": "623c53c1a09f3bf6ac702de5698c6fa855dda5021e43f4b955772581671b6b6b",
+    "data\\models\\m16_2_native_ltr_v1\\fold_2\\ranking.metadata.json": "5195e596d059336fe7cb799f41258257fc94e1b7b0e5c26b0db7cf40342b76da",
+    "data\\models\\m16_2_native_ltr_v1\\fold_2\\regression.json": "be522f95e3c032f0a3999fc3d98d2aa2590e5b75bc24ba086cfb846ff00ad669",
+    "data\\models\\m16_2_native_ltr_v1\\fold_2\\regression.metadata.json": "682ce01b48944499b49522054de3b9fdff5cb81a8f1f8e800cb48ac8dafa1c05",
+    "data\\models\\m16_2_native_ltr_v1\\fold_3\\ranking.json": "9647f4f0c55dc33cad6e0264449b86f74e1c540b51d5d0a094f43f08fe3f4cd8",
+    "data\\models\\m16_2_native_ltr_v1\\fold_3\\ranking.metadata.json": "cf604226de8763b5caf7c596664d4a67311cfad88203909eed465800c9088661",
+    "data\\models\\m16_2_native_ltr_v1\\fold_3\\regression.json": "b758678a93c2696b33e71dd902e2ce9cbcb95429ed6647f762a2daa69e7be5ec",
+    "data\\models\\m16_2_native_ltr_v1\\fold_3\\regression.metadata.json": "ba4370ca64358511c060abc47b538b817645d274c515e551b3d39a59b3917abe"
+  },
+  "key_reports": {
+    "data\\ml\\reports\\m16_2_native_ltr_v1\\summary.json": "d612a455c580f9570d105c9ebffb8adb49f1a42089e7bd37bc3d6a0180d04ea3",
+    "data\\ml\\reports\\m16_2_native_ltr_v1\\ranking_metrics.csv": "2333036bfe89b89bd659d18a2707b411cc1f6560b71eb906f068cda83cacb236",
+    "data\\ml\\reports\\m16_2_native_ltr_v1\\paired_effects.csv": "a34b9f8242356c7019527df9759da7dc16d1ca6d8d79a8d545291dbe5e4174dd",
+    "data\\ml\\reports\\m16_2_native_ltr_v1\\walk_forward.csv": "7dae170f12523e74d9ef2047ad242a051c4eeaa273038564c6c170bc713a396f",
+    "data\\ml\\reports\\m16_2_native_ltr_v1\\economic_diagnostics.csv": "e4e2542ee801d10f141b4e1162d2ae486d16cc401a7be31303efb90c3ccc1f69",
+    "data\\ml\\reports\\m16_2_native_ltr_v1\\artifact_manifest.json": "42ee308d7364c8bda02153d01ea6f8d3f331e3f3da5639dce5d06bdb401fe2a9"
+  },
+  "large_artifacts_note": "Models, predictions, ledgers and data reports remain under ignored data/; no secrets or databases included."
+}
