@@ -1,0 +1,104 @@
+{
+  "version": "m17.2-artifact-manifest-v1",
+  "source_commit": "5f5983a251752bd6a620d139b450360df70b2d19",
+  "protocol_sha256": "7598fa6f8e3633a2650ad17461f8c9a543480f1215b5be98e2ea2d298adccf6c",
+  "generated_in": "WSL2 Ubuntu 26.04.1 LTS / Python 3.14.4",
+  "files": [
+    {
+      "path": "app/research/risk_calibrated_benchmark.py",
+      "bytes": 20393,
+      "sha256": "ccb76377abc2ee22c409a72cdae1087b076967658aeca8097d8bb5bbeca3633a"
+    },
+    {
+      "path": "tests/test_risk_calibrated_benchmark.py",
+      "bytes": 5186,
+      "sha256": "ee125b04292544b5392a7933a360c1356cfc46841cefb40703ad35ace1d177bd"
+    },
+    {
+      "path": "docs/M17_2_PROTOCOL.json",
+      "bytes": 5558,
+      "sha256": "7598fa6f8e3633a2650ad17461f8c9a543480f1215b5be98e2ea2d298adccf6c"
+    },
+    {
+      "path": "docs/M17_2_REPORT.md",
+      "bytes": 7104,
+      "sha256": "1febca9f2bc7dfe84fc71d9ac0f46ef9001dc962991315b2f11428861a8ccf1c"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/artifact_manifest.json",
+      "bytes": 1257,
+      "sha256": "0438fa3a627560d2b14e9741ce7de8d2961ef501f078d4f9af353b3d1b121f4e"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/bootstrap_blocks.csv",
+      "bytes": 26935,
+      "sha256": "375327de11389ae982cdc3266e9b6c1214fa38ef652758207630628058cfa218"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/calibration.csv",
+      "bytes": 1080,
+      "sha256": "1d2eac95ca357421d8a95792b5de6ceaec8716bb0198fdb59a558e1dead9f73c"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/daily_returns.csv",
+      "bytes": 1159758,
+      "sha256": "2a24967dbcba31150320b821e0d1e8aee2cb5771b327fc7cf0b61ae1d388ddf9"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/data_audit.csv",
+      "bytes": 1007,
+      "sha256": "6fe3f09aadab52441f6ce0e2d191405eb05c87b2e99a632cbc315031d76a1718"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/fills.csv",
+      "bytes": 205907,
+      "sha256": "8ad3bdf1302ebefc7918db119eca412b8e222fa42099e2cdba63a373fb76bce8"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/paired_effects.csv",
+      "bytes": 5068,
+      "sha256": "ae8a09eec9056956f2e697b5b72f6efc380af4e84f36ac3cba384bda7516b0db"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/portfolio_equity.csv",
+      "bytes": 19797502,
+      "sha256": "f7dc6f39acc482abbfedc4970ad4ac4536ad43b08d5c3fc0f231417d84d53e6b"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/protocol.json",
+      "bytes": 5558,
+      "sha256": "7598fa6f8e3633a2650ad17461f8c9a543480f1215b5be98e2ea2d298adccf6c"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/signals.csv",
+      "bytes": 98673,
+      "sha256": "4300a91fff0f70c502e0513a84757e1e3420fdf503ec0e0239224e73ce7817dd"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/source_hashes.json",
+      "bytes": 1228,
+      "sha256": "806f440b4621ba1cdd332d8fe157f860234b3390c4472c154703121be4a51038"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/summary.json",
+      "bytes": 71626,
+      "sha256": "7718bea18b5834cf762eb14fbf302c230ee0537a6018dbdf803f7c22632834b9"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/symbol_contributions.csv",
+      "bytes": 48971,
+      "sha256": "3b023734e399f2fd014e64765288e3452001ab41285f8d9d6b0e517ec1e6dc15"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/trades.csv",
+      "bytes": 95534,
+      "sha256": "4e2eb685ea3976990fa2a8df6ff64037a4f4a245f1157db818b5151a44ca9fe1"
+    },
+    {
+      "path": "data/research/m17_2_risk_calibrated_benchmark_v1/window_metrics.csv",
+      "bytes": 19624,
+      "sha256": "a35c50b31d3c6e3033ed9d060ab3723457280dfca8a6db5d8f8827e248dbbcfa"
+    }
+  ],
+  "note": "Manifest intentionally excludes itself to avoid a circular digest."
+}

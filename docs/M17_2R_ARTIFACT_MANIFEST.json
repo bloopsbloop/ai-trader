@@ -1,0 +1,80 @@
+{
+  "version": "m17.2r-endpoint-coverage-manifest-v1",
+  "source_commit": "5f5983a251752bd6a620d139b450360df70b2d19",
+  "m17_2_protocol_sha256": "7598fa6f8e3633a2650ad17461f8c9a543480f1215b5be98e2ea2d298adccf6c",
+  "m17_2_source_files": 15,
+  "m17_2_source_unchanged": true,
+  "files": [
+    {
+      "path": "app/research/endpoint_coverage.py",
+      "bytes": 17300,
+      "sha256": "a8b5c42527339d33f3f2593d5be9214a2fb8e9a0f95b640bab53005f76013d6a"
+    },
+    {
+      "path": "tests/test_endpoint_coverage.py",
+      "bytes": 4090,
+      "sha256": "d1c47fd8bb5166d292256fa137e8412adb12c1feda70e8a1d8fafe00ceae5bf3"
+    },
+    {
+      "path": "docs/M17_2R_ENDPOINT_COVERAGE.md",
+      "bytes": 7599,
+      "sha256": "2e1f475e34967fe5a9d9b4b47d73be1474fea9888ae4a717705ae3386026e86e"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/artifact_manifest.json",
+      "bytes": 942,
+      "sha256": "9254b80bf7634464134775c217ba99218b72717dad78d8941cf29bd4f071a558"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/boundary_fills.csv",
+      "bytes": 77278,
+      "sha256": "f63a699b6d9e581e8d99106163a9250e8f33505dc9a4ccffaa78f9d2f28365eb"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/calibration_coverage.csv",
+      "bytes": 2316,
+      "sha256": "def98bd071fe6597b88d5f141d4e93aaf7c6ffd71fe5b6dfd9f7e84ab6d34c50"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/coverage.csv",
+      "bytes": 12996,
+      "sha256": "bf2a4e6a41551aa0d0b8ebda675e47bdfaaf3da2d476fb5d47d865235cdbe316"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/four_hour_blocks.csv",
+      "bytes": 11625,
+      "sha256": "b703852c72d9b4556f2d2ef804fea88cc7d4921f815bfa24a8434bdc632f4b50"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/four_hour_returns.csv",
+      "bytes": 1534166,
+      "sha256": "bdafc446adc6cd4867b085793491dd655dbc12be2a54c01ede3335cf0446e954"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/four_hour_sensitivity.csv",
+      "bytes": 2502,
+      "sha256": "b98dc94fa40f57852383deb6071a523126cfd0e9f0eba98c656a056a9e46b37f"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/frozen_primary.csv",
+      "bytes": 299,
+      "sha256": "686064cfb684dca4623f985b592c9b053ce60c029d20f98f003616aebc1b3771"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/source_hashes_after.json",
+      "bytes": 1954,
+      "sha256": "31b6a71b4e0a2f520eb8d0c4d67fafac3688f76f729f4e0b4f787833e627cbfd"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/source_hashes_before.json",
+      "bytes": 1954,
+      "sha256": "31b6a71b4e0a2f520eb8d0c4d67fafac3688f76f729f4e0b4f787833e627cbfd"
+    },
+    {
+      "path": "data/research/m17_2_endpoint_coverage_v1/summary.json",
+      "bytes": 1641,
+      "sha256": "77dfbfcdef619142f4aae964ab189f958836b28264c7678506206b51c1d27b64"
+    }
+  ],
+  "note": "Manifest excludes itself to avoid a circular digest."
+}

@@ -1,0 +1,82 @@
+{
+  "version": "m17.2-risk-calibrated-passive-v1",
+  "frozen_at": "2026-10-10",
+  "research_only": true,
+  "source_commit": "5f5983a251752bd6a620d139b450360df70b2d19",
+  "research_source_commit": "c497d40e4cbf4c370e0746e540082ded8f093757",
+  "parent_protocol": "docs/M17_1_PROTOCOL.json",
+  "parent_protocol_sha256": "19b840a5ad7c618f745321f903d3b8bfab912c9d3eb2da2eb00dfd90b1f1095b",
+  "m17_1r_addendum_sha256": "41632fb8f4f5680dd2a614e256b7d5348732683625a0862b42db29fdb980323b",
+  "m16_2_protocol_sha256": "a5f66c52a0eb6661b0c41467be20af93ac224b7e741bc5f17281d9b66ebd8e7f",
+  "m16_2_walk_forward_sha256": "7dae170f12523e74d9ef2047ad242a051c4eeaa273038564c6c170bc713a396f",
+  "output_namespace": "data/research/m17_2_risk_calibrated_benchmark_v1",
+  "overwrite": "refuse when output namespace already exists",
+  "universe": ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "LINKUSDT", "DOGEUSDT"],
+  "timeframe": "4h",
+  "data_period": ["2023-01-01T00:00:00Z", "2025-12-31T20:00:00Z"],
+  "data_hashes": {
+    "BTCUSDT": "7db04ec87fd229d325cab5e8082ce979bbf031c811a9d4434814d3082860a519",
+    "ETHUSDT": "8f8d2bc574d780dd192adddfd034d3663816bd9187b40262074e5c5eb9dd0bb2",
+    "SOLUSDT": "385bee74be3d6fff2fab26418a889b0e924f55e8db41e1f89ed4dda94ead0d0d",
+    "BNBUSDT": "ff1d474ad38b78cc05bbc6a481892d9e48ec044c1fb1e9db4dea4171afe7ca4a",
+    "XRPUSDT": "5ec2cd7ea78ecd598551bb1f4faca736735e2c9a6296b70b9fef1ec1f3ff26db",
+    "LINKUSDT": "6c229dedfd2ba9c8101fa71ea5262795d808fcf4cfb0807628615882ebd93cae",
+    "DOGEUSDT": "6baabfa57dbf82ba84211003d7276f470d71afcf30459129076b373178fea625"
+  },
+  "strategy": {
+    "definition": "unchanged M17.1R Donchian 120/60, long-only, flat/long, seven equal isolated sleeves",
+    "economic_start": "2023-01-21T00:00:00Z",
+    "initial_capital": 1000.0,
+    "entry_lookback": 120,
+    "exit_lookback": 60,
+    "execution": "signal at 4h close, fill at next consecutive 4h open, terminal liquidation at final close",
+    "rebalancing": false,
+    "cash_transfers": false
+  },
+  "policies": {
+    "A": "unchanged restarted M17.1R strategy",
+    "B": "fully invested equal-sleeve buy-and-hold",
+    "C": "train-calibrated equal-sleeve buy-and-hold plus cash reserve, no rebalance or transfers",
+    "D": "cash with zero yield"
+  },
+  "calibration": {
+    "formula": "lambda=min(1,sigma_strategy_train/sigma_buyhold_train)",
+    "returns": "synchronized UTC-midnight daily net returns after base execution costs",
+    "standard_deviation": "sample standard deviation, ddof=1",
+    "bounds": [0.0, 1.0],
+    "failure": "METHODOLOGY_BLOCKED if buy-and-hold sigma is zero/non-finite or strategy sigma is non-finite",
+    "capital": "lambda times initial capital split equally across seven sleeves at first evaluation open; remainder held as cash",
+    "future_data": false,
+    "stress": "reuse base-cost lambda without recalibration"
+  },
+  "costs": {
+    "base": {"commission_per_side": 0.0004, "slippage_per_side": 0.0005},
+    "double": {"commission_per_side": 0.0008, "slippage_per_side": 0.001},
+    "accounting": "apply to actual traded notional; passive returns are simulated and never mechanically scaled"
+  },
+  "main": {
+    "calibration": ["2023-01-21T00:00:00Z", "2024-10-21T00:00:00Z"],
+    "validation": ["2024-10-21T04:00:00Z", "2025-05-27T08:00:00Z"],
+    "test": ["2025-05-27T12:00:00Z", "2025-12-31T20:00:00Z"],
+    "lambda_reuse": "one lambda from initial Train is reused unchanged for Validation and reused Test",
+    "primary": "restarted reused Test"
+  },
+  "walk_forward": [
+    {"fold": 1, "source_train": ["2023-01-02T09:00:00Z", "2024-03-16T03:00:00Z"], "calibration": ["2023-01-21T00:00:00Z", "2024-03-16T00:00:00Z"], "evaluation": ["2024-07-03T16:00:00Z", "2025-01-02T00:00:00Z"]},
+    {"fold": 2, "source_train": ["2023-01-02T09:00:00Z", "2024-07-03T06:00:00Z"], "calibration": ["2023-01-21T00:00:00Z", "2024-07-03T04:00:00Z"], "evaluation": ["2025-01-02T04:00:00Z", "2025-07-03T16:00:00Z"]},
+    {"fold": 3, "source_train": ["2023-01-02T09:00:00Z", "2025-01-01T19:00:00Z"], "calibration": ["2023-01-21T00:00:00Z", "2025-01-01T16:00:00Z"], "evaluation": ["2025-07-03T20:00:00Z", "2025-12-31T16:00:00Z"]}
+  ],
+  "full_history": "descriptive only; continuous strategy path is preserved separately; main Train lambda may be shown with an explicit non-causal/in-sample warning before calibration ends",
+  "paired_endpoint": "mean of exact-date daily net-return differences, Strategy minus calibrated passive",
+  "bootstrap": {"method": "paired non-overlapping block sums/counts", "primary_block_days": 28, "sensitivity_block_days": [14, 56], "repetitions": 5000, "seed": 42, "alignment": "exact continuous dates; no dropna; windows never combined"},
+  "decision": {
+    "PROMISING_INCREMENTAL_EVIDENCE": "primary base 28-day CI lower bound > 0; strategy reused-Test net return > 0; at least two of three fold point effects > 0; doubled-cost reused-Test point effect > 0 and strategy return > 0; strategy reused-Test realized daily volatility and absolute max drawdown are each no greater than calibrated passive",
+    "WEAK": "some positive economic evidence exists but every PROMISING criterion is not met",
+    "NO_INCREMENTAL_EVIDENCE": "no positive primary, fold, or stress evidence"
+  },
+  "notes": [
+    "All evaluation periods are reused research periods and are not untouched holdouts.",
+    "No model training, parameter search, threshold tuning, new gate, stop, target, or strategy modification is permitted.",
+    "Cash yield is zero and passive sleeves are never rebalanced."
+  ]
+}
