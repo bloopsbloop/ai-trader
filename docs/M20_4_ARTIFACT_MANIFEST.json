@@ -1,0 +1,106 @@
+{
+  "version": "m20.4-stage-a-artifact-manifest-v1",
+  "milestone_status": "SMOKE_CAPTURE_PASSED",
+  "source_commit": "4e4308ad5bea00a55b593581b546ffb872ed07d1",
+  "remote_commit": "4e4308ad5bea00a55b593581b546ffb872ed07d1",
+  "branch": "main",
+  "run_id": "stage_a_20261011T211113Z",
+  "run_path": "/home/ostap/ai_trader_capture/stage_a_20261011T211113Z",
+  "network_capture_count": 1,
+  "stage_b_executed": false,
+  "trading_performed": false,
+  "protocol_sha256_before_capture": "7908fd0f1d7175322d578ff8638e10b91cd791067592a593273782445141e00e",
+  "capture_interval": {
+    "session_start_utc": "2026-10-11T21:13:51.969539Z",
+    "stop_utc": "2026-10-11T21:43:52.615248Z",
+    "measured_duration_ns": 1800645715331,
+    "stop_reason": "time_limit"
+  },
+  "run_files_total_bytes": 128498697,
+  "run_files": [
+    {
+      "path": "/home/ostap/ai_trader_capture/stage_a_20261011T211113Z/raw.jsonl",
+      "bytes": 127794885,
+      "sha256": "51049909f9fd589cb43d0471be459bb42b9bfe102ef973bae40080c89602e131"
+    },
+    {
+      "path": "/home/ostap/ai_trader_capture/stage_a_20261011T211113Z/report.json",
+      "bytes": 702934,
+      "sha256": "8b8f6f749d06e76596684eca63e1b3959e9b6497cd73cb559ba0e0a9d7673635"
+    },
+    {
+      "path": "/home/ostap/ai_trader_capture/stage_a_20261011T211113Z/manifest.json",
+      "bytes": 813,
+      "sha256": "ac9712ba2c048be3737a1951464e31b3d1616ada7163f30ce42534fa474022d0"
+    },
+    {
+      "path": "/home/ostap/ai_trader_capture/stage_a_20261011T211113Z/manifest.sha256",
+      "bytes": 65,
+      "sha256": "9fd749ebe59b203fb0684b133ee6cb44fbc93c37d57c8c5ac984f581ee95e432"
+    }
+  ],
+  "windows_documents": [
+    {
+      "path": "docs/M20_4_STAGE_A_PROTOCOL.md",
+      "bytes": 4745,
+      "sha256": "7908fd0f1d7175322d578ff8638e10b91cd791067592a593273782445141e00e"
+    },
+    {
+      "path": "docs/M20_4_STAGE_A_REPORT.md",
+      "bytes": 8429,
+      "sha256": "57e6db04488c3961506053f4aecef9454dd60d9948bfcd69905b4e702ae64462"
+    }
+  ],
+  "executed_source": [
+    {
+      "path": "app/research/market_capture/__init__.py",
+      "sha256": "1340633ef904310b6a3274acb6c269ce8bccda0516cb9916e8f1991415d309bf"
+    },
+    {
+      "path": "app/research/market_capture/__main__.py",
+      "sha256": "eef409e9e3910ac8779859194955ec87c6ba633c92d89854decfc46d4b1eb1f2"
+    },
+    {
+      "path": "app/research/market_capture/book.py",
+      "sha256": "21a26c7bb543b412e668ca1c578e44510f4a56d09072507bc48ec14e6414ebde"
+    },
+    {
+      "path": "app/research/market_capture/engine.py",
+      "sha256": "230eb541a90dcd3866976b0151530af3d14c7fa1c551cb6c1b6d636e9de01c99"
+    },
+    {
+      "path": "app/research/market_capture/envelope.py",
+      "sha256": "6e12a63c168a4ced6f86736433b02b22fc2d3f6277a88d9a57d9443e3c8b3272"
+    },
+    {
+      "path": "app/research/market_capture/public_adapter.py",
+      "sha256": "8ff7636149f36c9a7dd57b60ae47bfa51e65dcc8066913ea9207302850630f86"
+    },
+    {
+      "path": "app/research/market_capture/queueing.py",
+      "sha256": "a6dd3a7f23ccfd039d2c7798a26ed814e98c5f6f42775c3df098724b4bd3ad83"
+    },
+    {
+      "path": "app/research/market_capture/replay.py",
+      "sha256": "9296915f85d2953980cc45e14727be399091b020b359016cf7e3c0d6ba9a8f2a"
+    },
+    {
+      "path": "app/research/market_capture/storage.py",
+      "sha256": "9ecb7f0e39487232cc55308856c827f8becd961fcea75392fa0b327a82bd31a7"
+    },
+    {
+      "path": "app/research/market_capture/transport.py",
+      "sha256": "6ae435a88bb4223b09c89d9a12a50d8ba6e4e61f28ec5113bfb645c8e9597cc4"
+    }
+  ],
+  "verification": {
+    "offline_replay_integrity_status": "VERIFIED_FINALIZED",
+    "derived_fields_match": true,
+    "partial_tail_detected": false,
+    "protected_wsl_fixtures": "55/55 matched",
+    "m20_3r_manifest": "22/22 matched",
+    "full_pytest": "407 passed, 3 warnings in 29.62s",
+    "pip_check": "No broken requirements found",
+    "git_diff_check": "passed"
+  }
+}
