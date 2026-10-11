@@ -1,0 +1,817 @@
+{
+  "version": "m18.2-cross-tree-artifact-manifest-v1",
+  "provenance": "HOLDOUT_PROVENANCE_UNCERTAIN",
+  "source_commit": "86e3379926fa7b1ab70c241c2e7e02273954704b",
+  "evaluation_batches": 1,
+  "evaluation_rerun": false,
+  "roots": {
+    "holdout": "data/holdouts/m18_1_2026_jan_sep_v1",
+    "evaluation": "data/research/m18_1_frozen_strategy_evaluation_v1"
+  },
+  "transfer_verification": {
+    "holdout_files": 137,
+    "holdout_bytes": 2686549,
+    "evaluation_files": 14,
+    "evaluation_bytes": 1511386,
+    "wsl_windows_paths_equal": true,
+    "wsl_windows_sizes_and_sha256_equal": true
+  },
+  "files": [
+    {
+      "path": "app/research/frozen_evaluation.py",
+      "bytes": 35843,
+      "sha256": "2adfb2193e8d5dc515fc597cf6204fffcd7760e262ffeb42494c7879531cd202"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/acquisition_manifest.json",
+      "bytes": 56583,
+      "sha256": "bb2d95ea3a5b14e33c29dfbed6a534f81d147b980cfe0ea8959c6b2cf5c2a90c"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalization_manifest.json",
+      "bytes": 2705,
+      "sha256": "c7f6a18c5e2a97f93c75afc3f0f852d54fb65877a618ef4c8225168b87b2dbfb"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalization_manifest_attempt_1.json",
+      "bytes": 323,
+      "sha256": "c07408f8e533e422e83611de662d54c564caa90993792a7a7557e45639857ab6"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalized/BNBUSDT_4h.csv",
+      "bytes": 230423,
+      "sha256": "e82d3033afd1957f295e9b8a53780585e8491e168a97c449a08bb9d4b2f4107d"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalized/BTCUSDT_4h.csv",
+      "bytes": 258195,
+      "sha256": "25b6826d580688a12717714b987b34535ed3807b8f2b4b29e191c25ad1c584f2"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalized/DOGEUSDT_4h.csv",
+      "bytes": 242408,
+      "sha256": "fde47f4b788486d31d9cce586ee59a6a973041dacba83faca56f60ecce39d90b"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalized/ETHUSDT_4h.csv",
+      "bytes": 248566,
+      "sha256": "49636a1d01a84c07fb74667491d8263a6c58afddd6c35db6af73f1fa7d5d8d66"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalized/LINKUSDT_4h.csv",
+      "bytes": 218901,
+      "sha256": "f6e9186e7856eb5772e9139023b2e20090f5e9a14b383035dbe3a4a8bcd2f316"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalized/SOLUSDT_4h.csv",
+      "bytes": 231606,
+      "sha256": "1eb927acd25a77440a64111fcb3f287b38f1302d4dbceea1407302c93eb748e2"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalized/XRPUSDT_4h.csv",
+      "bytes": 234485,
+      "sha256": "dc2434b66c07308e9e4fe5d6917f76c9d3431818cd2274d6d7b568d9405dfba4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/normalized_failed_attempt_1/BTCUSDT_4h.csv",
+      "bytes": 313908,
+      "sha256": "e225d06a21421f2cfe638f0564a59dd4c79f6c5edb9aa11d8191ec31bda45952"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-01.zip",
+      "bytes": 10313,
+      "sha256": "ba4071efa4a7285fc2269f9d711a544c482e0d7ae76e2f462e297e7098c73e0f"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-01.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "39b8d086bd696ef6a35fde9263da2d1bbd3d369ce8721b5840075ecdcddb2e7c"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-02.zip",
+      "bytes": 9401,
+      "sha256": "d4f9119c6cb61cb29cf167a436d65a0ebc412f650a80706c1f56501ef5723449"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-02.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "2efccdf849fd8d934723dc397b3f1e9550c85800163c634a1039f491a2bc002c"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-03.zip",
+      "bytes": 10201,
+      "sha256": "49471fe25d74a1af76066de586738f0d80c7f7d87b7f1737e8d8e787f54bf9d2"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-03.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "81f129ac33c192e933ac10d98cdb1f831c96abd8a219d757fe6eea665722bf2a"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-04.zip",
+      "bytes": 9783,
+      "sha256": "a30e3062a9c3bbd3594ddccee0eb9d632071b936cdaca30f5d0b6281b79230f1"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-04.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "8775bda21a1ad7437b9e4deba7439dca3e89b316145c855208feb6bc1fa420e3"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-05.zip",
+      "bytes": 10220,
+      "sha256": "1c400f6266f630b42c27dcfe706bc2f66e68c28bb7551ba22e24ee38dcc4f0a6"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-05.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "27d1e98a5edddd03d6db78b1eeec91e1a40d1c0926518197da493f65cbdfc1ff"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-06.zip",
+      "bytes": 9958,
+      "sha256": "95521a83a115d831e51defde1673a0e18ac40ff215cf8084c4807b67392dca47"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-06.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "91174f95f9ed7e43f15b9ac30be1bdc60dc7063b5daed7f3d3c3bd06d17d84ca"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-07.zip",
+      "bytes": 9982,
+      "sha256": "fbec66beab7dd6c652d6d82895ae9e926ade8179b47770c03c40e50a3960abf4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-07.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "148ec07cf87b5fb3762feb12241dc2c60bf5b511bf5bf2b9a157c099ca472dce"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-08.zip",
+      "bytes": 10136,
+      "sha256": "9025b5970e239eaf81346c290b1ba1e21fd6a7850afb7e9a3608836d9d121f58"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-08.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "1fa81aa0f4e370e2f91858b7063dada0702c5f09a67a71de47a444a108e2030c"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-09.zip",
+      "bytes": 9926,
+      "sha256": "70d0666556aa2237ca59d9b11e968ab046068be8c872499000879932567dbdfb"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BNBUSDT/BNBUSDT-4h-2026-09.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "6772e7f6f097bc38bdc0cc2234dc3730a99fbbedb5709d190070e41dd3800c6e"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-01.zip",
+      "bytes": 11897,
+      "sha256": "c47144ee6a4480948998fafed8c93e65f6ee826725249da4c5ef595e563b803a"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-01.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "12627a148f0930100288364238fafeafa5b5f7b1fa602676c7ea6176cabf3bbf"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-02.zip",
+      "bytes": 10881,
+      "sha256": "e9586ece8bda27088cf065d7e31371a958aada0e7d607a40bc94149014534730"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-02.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "c261f83af6c09664911d49dd6dfb8fdef5c28a28fb1dfa55a5e4da29e61f562b"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-03.zip",
+      "bytes": 12014,
+      "sha256": "961c94959dcba32999e17554e9c1ff30e6c9cded337d047c529ea6480f455e23"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-03.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "197153549793127cb186561a42d1d8d768f3135cc43e2228258e544702b36326"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-04.zip",
+      "bytes": 11495,
+      "sha256": "e0e1df46cd895c85e73c3206313a32129182b383839cb80f7f20f9b60dc5c587"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-04.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "bc2027caf6486f891ba776b0d6bc4a34c6940fe021b5ae0864b4c08d11869b87"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-05.zip",
+      "bytes": 11810,
+      "sha256": "d753d0afb14966cc871aed382750a043ab012ef05becfbf730668f28961b8403"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-05.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "f118335d0c7facc8ef52ed1440d4bbb7691423f8e5d4a6a61e6925edfac8aa88"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-06.zip",
+      "bytes": 11462,
+      "sha256": "96057f68cb174c79a14d5bb142f8fb4a679698fabbfb861d89247b948493d292"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-06.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "28a748fa27258170dcfc630a2f4795546ec1a5f88eab8506c8e330dae943c1f8"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-07.zip",
+      "bytes": 11743,
+      "sha256": "2c2f2e3eab14ff8b1d692119e824c3bb20496e87bd2625cfef25a93f7be50d0f"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-07.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "21b07cd34ba36e7529a1127ef3f836710b43e228f97d936234568a75a9a8d2a4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-08.zip",
+      "bytes": 11659,
+      "sha256": "5779f1b751af187bcdb69fc3e901137dc57c1d2b16ff0ce85bcb350a254fdfe6"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-08.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "b9ccc68af8961047a41049f3d210025601b433ed1583eb99a9ef7e6d3c0564fb"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-09.zip",
+      "bytes": 11358,
+      "sha256": "4a34f62c260c90d2a77461c8b0adff6e7cd6e0b31dfe2397e5229c3f18e4f9af"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/BTCUSDT/BTCUSDT-4h-2026-09.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "0672d2fb5bd0d69a415d70998c4e800c4a06914d21214d45f5f35f81e2f8ca33"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-01.zip",
+      "bytes": 10085,
+      "sha256": "b73d32dabdf50c557af837c063e0e3b57bfea5c75202c986d737560efceaeae5"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-01.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "1a39ed92858dd156fec8ea202d875624ac07733413d8c5fba76a74a5fd2df13c"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-02.zip",
+      "bytes": 9106,
+      "sha256": "37767b8192f5a1002d15b10273d1a1456e03d7fc96435c39059d3c66462d31cf"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-02.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "56cad19c67335c203a751413e0feccbbecd7c8df30b16ac711bdf2e7339d57b2"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-03.zip",
+      "bytes": 9933,
+      "sha256": "8bcdc8aac8645d65f4a2e8212d9c7f44658e1eae81dfd2903f46c6edd47c2103"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-03.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "3449dba17bfe602180cd6f2f822a4df35c48d198439f85e0776da9f0591cff4f"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-04.zip",
+      "bytes": 9569,
+      "sha256": "a71302b6a14a05d877bff3057179e3193740ecfdf3d5fdd7928115bbba2f8d31"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-04.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "4c18a076b0954325d412d27a894e0fe410c55a0adefed721b3992103afa52e72"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-05.zip",
+      "bytes": 9933,
+      "sha256": "47ae102effef7d4e060a73ddad5c64887f98197fe6b9ef37dfdd55792adfde12"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-05.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "2ddef5b0ae58533430729f55962413d2696f0406f1ed72e2b49babf3d345e638"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-06.zip",
+      "bytes": 9532,
+      "sha256": "0e2d44571d5d9e140273ed2f6b1cab8a434d73dd10bb057f69563637f05b2758"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-06.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "035791032813caa41fe0893b4a48fef6879987e16178747e3f66ac9a652d04d4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-07.zip",
+      "bytes": 9600,
+      "sha256": "729118cb30ca11b7d7e9c2546da2d4dc4395346200a1f5766721b14d7720f348"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-07.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "b535b6b6e2ab1202de3ccaf10152684a44223d202ede231e4a5da2c230560ab1"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-08.zip",
+      "bytes": 9651,
+      "sha256": "b2c0ae3ea9ced4b128c3688b6cbb7c2a2d533700a7660e75093dfa07d9a05afc"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-08.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "3b1fc63f2e1f2e3e231c7124c9b3066a25ba43deb95d2d443823d2bc5f43fa24"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-09.zip",
+      "bytes": 9668,
+      "sha256": "06c1d0c08fc85c8676bfae19c64c1d66f0ad7337100ab5344482ff255b5592be"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/DOGEUSDT/DOGEUSDT-4h-2026-09.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "41911cea1a81c574ede5e75aadb9027759634dcbaaa91ec88b5a9eb0cbb2744e"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-01.zip",
+      "bytes": 11446,
+      "sha256": "c43846fc3c73d9c88f8f558cba7e4e507b00f38ce0624bfde28dbeac09e4d848"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-01.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "8f6542595d48dcc3571876d0f6b4190437626516f8a289be3174a75d0f708ca4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-02.zip",
+      "bytes": 10405,
+      "sha256": "85b02b49ca585bd9139e0c9896541cf122430794045a84a66ff9d370649dc110"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-02.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "f8dd439231be2314a8e848245a9b5f79843f91267972a298beb1100f35c51482"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-03.zip",
+      "bytes": 11374,
+      "sha256": "b44a834f429a208f250e2dd081ffad16b0bb8b01f9b54b407adc19c4cdcaacb9"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-03.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "7804cae4c481f3395afa937b341084357d5b249b2c529161e955e0152e62b835"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-04.zip",
+      "bytes": 10917,
+      "sha256": "cb8b7537f03e5cedca3bfac521e8cc28691db7a2ce29d3fd10719509fe0fbbf1"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-04.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "1a21aa2b391a1e67e003a91643fb6d5307f3ae435aee14208a8cfbd11e9cef59"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-05.zip",
+      "bytes": 11169,
+      "sha256": "05b00c2d67d0da1610912e8582c90adceea3e4c153f6e9dadc1988905aa8f9a3"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-05.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "bbcfb4628dae6875010688488d397dc9668bed2d6565d136c1fc48da3b8765e1"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-06.zip",
+      "bytes": 10963,
+      "sha256": "1a1d75bc7fd93753ac8358fc6eb8dfbb09b9749562295ccfe3f439f6af118dee"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-06.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "feae7bd5a2c93a8d87674637fc193b45cc64cc61a7c5c7a5479f50da02bd8955"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-07.zip",
+      "bytes": 11130,
+      "sha256": "001073290be48adb7b7f03b407ea80b7e19103a1548d138747ee14c853c771a4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-07.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "6b9bd9e481b8cdc258b9264025787f646c047506ac35adac728b2f0c9e9e5046"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-08.zip",
+      "bytes": 11136,
+      "sha256": "4c49bb35de8168a08764dcbc95f411df91668e07e35aecc2c5838a0350b870de"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-08.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "53b8487e4f96d88c7ec19c506ea35b557cc6392901d562a0bde7697fb468576e"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-09.zip",
+      "bytes": 10914,
+      "sha256": "00f0fbbfea608b4fb28a4b30c4921b755b49081ab47908988a30673e245dfe03"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/ETHUSDT/ETHUSDT-4h-2026-09.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "4f30e4b75ecb5bf148fb58316a4f7c18f3fa9c947c9644275a26e960a6b36841"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-01.zip",
+      "bytes": 9063,
+      "sha256": "e057c678f9ac81ca655a604d8b5aa8baccb4dabb13cb6b1f7a75467d379663cc"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-01.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "e081345e51ca419579bd66a2f82ddfcc3e8d0de8a17230bf034e8988fffa8575"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-02.zip",
+      "bytes": 8257,
+      "sha256": "9f4f72f11254173ad7dad205c9cabda275a79a4e6dcb31ee34a5789664c4c5fc"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-02.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "ba58e9fe452c4df057e7a5ee135dbbdbec84d4043ee5dfd3e5d32b3c775ddfd4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-03.zip",
+      "bytes": 8972,
+      "sha256": "d3ab3841ceb97c4ca9db313878dab39fd573eca23950eb49ece7df54cf407ff2"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-03.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "c61d84447b682348631fd616eb4ba19df2bec2872806528932fa860b139d0805"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-04.zip",
+      "bytes": 8620,
+      "sha256": "65e7fc5dce443339eb033b90612f9c4ed70d10de511b683c81a6ccd8a75f872d"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-04.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "c9bbf6ef5b703026aefd6102019ff4fc44d3c4bc96b56cefdf0af551c32bc3af"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-05.zip",
+      "bytes": 9336,
+      "sha256": "92d0dcaff76b68246932d42b0dc2979c5bd6b786906bf21bcd3cf7e2f55d3cf5"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-05.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "2f7aebc0b0fdee58def7d306e14c7f8186710b96919a296166450986e4006b24"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-06.zip",
+      "bytes": 9391,
+      "sha256": "fcc7546d903d0790f64ac80ff8222a9cd765b15bc28444f46415e880bd46a1bc"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-06.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "c3b5232f931e713a788500d2402c6d68ecd5e3f7771218aee1e6449044a81a48"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-07.zip",
+      "bytes": 9489,
+      "sha256": "10b5f2d5a1bf061f3b87cff727655651d7f0634a6fb1a6e4aeb4bea893875d7c"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-07.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "aeab8c0b48a5318824a9c2ff67c97f045b20f4750d5dd8c00a25ae071e3f741c"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-08.zip",
+      "bytes": 9705,
+      "sha256": "c5572dc5386415311a893ce3e230fdb1c2116ffb1e61ec456e4f44aa32ac6ec7"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-08.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "5af4f9b6cb33847376d4a93aeed490c5a1d3352e72458c63cefb6b96b6060c7b"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-09.zip",
+      "bytes": 9674,
+      "sha256": "74c6e74d196acf088abd9533c01e785c36f160cb7030d207431e135aa6939f40"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/LINKUSDT/LINKUSDT-4h-2026-09.zip.CHECKSUM",
+      "bytes": 89,
+      "sha256": "36229828628fb0111e078f1bf42e12b2e21cf61fc60e0ad530bf5c4c3c5b5a3a"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-01.zip",
+      "bytes": 10419,
+      "sha256": "47df2cc63a4ec0cdf09dc4f3e31c163a00fcb500150f123cbbd1ac142dfe850d"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-01.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "e1f41a33662364aab0623b88f768a76c6e1faee70f59d6b18fa33262dd3ecca3"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-02.zip",
+      "bytes": 9527,
+      "sha256": "6697abebc17d11b1e820564040fef9c6903eb3eab61f49b905cf976975cbb656"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-02.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "453f275a76d61f74f944290810007760967884bc72ddcbd09b98e589a6b07a9d"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-03.zip",
+      "bytes": 10337,
+      "sha256": "b8d9776b8f342c74450c11eb3de393f17adb9a2a6386b475f86a353ba5fefccc"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-03.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "b52bd2813bd80eae092c58f7c067d6e8872ffc3bfef3294ea88ab65bb277f036"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-04.zip",
+      "bytes": 9865,
+      "sha256": "f025b29d13354e7813d259b45eae13960341b604e3ff32e569431bfde9a24c62"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-04.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "54245752f1834ed9f48c40e3162b80d34e77ef8d0ca2e3d912e4e79e460d689b"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-05.zip",
+      "bytes": 10226,
+      "sha256": "eab12ab01869f30b41780614ec1799be339350c3d6f14d840a680cd8af0be763"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-05.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "8c1183747543187dbc8e047f49b2b772d7ca90bdad80eca29347b34378cbd52e"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-06.zip",
+      "bytes": 9982,
+      "sha256": "ca7162645e37c0d40222bda50e6351de321b7679d42a06ed6ecbdaeea9f719d6"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-06.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "658174ec642013fc4437f1df41cf92e3292f3744435623d233f642c93f3b2b87"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-07.zip",
+      "bytes": 10017,
+      "sha256": "3ef8af0d4826d5f5f286fdefb8de3757a7b192648cdba7d5282a80e2a7de255a"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-07.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "77c50c03f44af6b3e846a6e184d4d67280c245f87710dbacc8839ff2005a8789"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-08.zip",
+      "bytes": 10205,
+      "sha256": "f4b693aec9c09fc4ee0cf754e200d3a78feb58c5045d7d3ae86076dbccd52697"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-08.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "93ab8cefc63364bbd247b4ec5816cfb5b71ed11f3843357998b6af1c898df642"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-09.zip",
+      "bytes": 10067,
+      "sha256": "e8e5c80c24fa91c89c5797b206e707edffbbd42c90acfe47d3f7e9471f2cb878"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/SOLUSDT/SOLUSDT-4h-2026-09.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "4adc63c895fcba15443b4d0b2e3bc96dbbf7731f570ad527ee60492c20ff7bfe"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-01.zip",
+      "bytes": 10287,
+      "sha256": "106cc25cafda2b840e45869e9311ccec71455865d4e4e75d477cc75315be5102"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-01.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "5a64e24135584aa058c78b79ac1e64841a6d7038b06587bf6815d900209697a2"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-02.zip",
+      "bytes": 9334,
+      "sha256": "52fc9f02cf40252f0175ef84f4ccbe9f80f2efe453c63b5b8c8b78873fddf4ac"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-02.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "731a5e506b780907558d4df5e45c7849428e4ec1d07f6d01468ed282b7d795a8"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-03.zip",
+      "bytes": 10144,
+      "sha256": "81ea2229da5c93bd77b3ed32d2d2fce7ada2eb6e7db8b54f8d305d11fd9dda64"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-03.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "e0715e1629a3ad89f218636c2cc6a138d7751ab0d95c3486f9d3f4f65f3eb101"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-04.zip",
+      "bytes": 9695,
+      "sha256": "534024ca409fa5a150c649d899644c64d5094c4c92597b8fdf6873a57e806369"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-04.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "e1bd03fadeddff76c1c9342741526a667a30c9fdbe8a97899fc23060066b85d4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-05.zip",
+      "bytes": 9971,
+      "sha256": "c1545e45ea628f81825dbbdedd561c7a889ce5524abe43f6d700d396e89e2afc"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-05.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "b8e487e4d63b525a705e88d38dedb0ec58a348d3e6f4041ee604b28bed7b0d90"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-06.zip",
+      "bytes": 9781,
+      "sha256": "165bae46eac0ce45413ee7e245f25403474468bf5a238c6ea6c32c0f84ab1ac0"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-06.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "02dd4de8e1cda198e989fa38d0be2a33f555c820555d80e7d885fa68eef9b83d"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-07.zip",
+      "bytes": 9850,
+      "sha256": "02cd9bb5c681e55315f31709ca2f788aeeac916c7753eb899efcf7dc48092f66"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-07.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "312250597f3d16818b063010bbe6eb88f8f6a1ff4e26e23ceb4c8d2236803bc4"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-08.zip",
+      "bytes": 9989,
+      "sha256": "e4872f9cbd34080100868f03d22fe39e316842680e6a3e88e3c97caab02d018d"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-08.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "af653045e1aa9e0042c7988430d2f7faab54a35f328aa1c3e1f811be383c5328"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-09.zip",
+      "bytes": 9911,
+      "sha256": "24a89005e3c9cf087a819aa241c6fdfc0d7cf127c9d0646cf6b3342702172c7f"
+    },
+    {
+      "path": "data/holdouts/m18_1_2026_jan_sep_v1/raw/XRPUSDT/XRPUSDT-4h-2026-09.zip.CHECKSUM",
+      "bytes": 88,
+      "sha256": "d7c7f629e0ca9b06893e5f29b6a50c0edf6b7af54c6fecdb2c0cb412f8b00947"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/artifact_manifest.json",
+      "bytes": 1564,
+      "sha256": "bc70ccfd1a6fcc5a98baaf7044d5160cb4a908de3306052ef7711ce6bd3a2d70"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/bootstrap_blocks.csv",
+      "bytes": 24495,
+      "sha256": "fd511612f7f0ce0e6bf2777e549cc0847c1db1c33eff27446605183628c90670"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/bootstrap_effects.csv",
+      "bytes": 2095,
+      "sha256": "7264af537f96dce4a738770106bf3224abd50584005eb4cc6e195d7d387b7f9f"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/calendar_subwindows.csv",
+      "bytes": 2912,
+      "sha256": "ce18c885739c0f07cb5bd33b46a8a0bf3a67c5a1750d1460ddcd89f73d41fb8c"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/daily_returns.csv",
+      "bytes": 131714,
+      "sha256": "a1cdaa7a40359cacd008b340756ab5103b5bdba29df3de250915cf6ef7867961"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/execution_status.json",
+      "bytes": 214,
+      "sha256": "7b519c7c63904372e1743ebe9258b23754e11112e4f74daaaf2004784403fbf1"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/fills.csv",
+      "bytes": 40581,
+      "sha256": "09854e7b4eb3bd3cd20bce70e025c26bb1cba38b928508d116240898c5af16f0"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/metrics.csv",
+      "bytes": 2995,
+      "sha256": "1af71c3743b999091a95126055fb2d3a1765ca4ecfbee55dbb74334ffd68c07c"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/portfolio_equity.csv",
+      "bytes": 1248227,
+      "sha256": "d6e0fb4a9b0973d127c0f2e3832dc019cd3f3d3b2e013d06d57bd5583d5b718d"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/signals.csv",
+      "bytes": 19459,
+      "sha256": "8c49fea26776e9b0ae312cebd0a20bd1d860f772429766a46bee76c3565fce59"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/source_hashes.json",
+      "bytes": 962,
+      "sha256": "dc01270004c73d157ddb41458c3a97db4d81ded742a0e827e88ce4b80713c182"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/summary.json",
+      "bytes": 11817,
+      "sha256": "d02e2cb1f7f6bdbf31b1a06502c4a2df3164ac50fd7b4973e47160b7bb6de39f"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/symbol_contributions.csv",
+      "bytes": 6133,
+      "sha256": "9867c4a6ae8b3f25aa132c8f6ab8964bc6faac14bfa347ee6a28580b2b421e86"
+    },
+    {
+      "path": "data/research/m18_1_frozen_strategy_evaluation_v1/trades.csv",
+      "bytes": 18218,
+      "sha256": "e4c487618cbe8c699b746554ed902167ffd21abf418261bafc59b09dc162edcb"
+    },
+    {
+      "path": "docs/M18_1_EVALUATION_PROTOCOL.json",
+      "bytes": 9592,
+      "sha256": "0997c5ba7f63351bbf10ab6271aa6d996ce9232dfefd8a792e735d57e1449f5e"
+    },
+    {
+      "path": "docs/M18_2_EVALUATION_CODE_FREEZE.json",
+      "bytes": 938,
+      "sha256": "d1eec853d08a8535189e4ad8cc868a9aec78a8f51155483cf0f61d1492cff797"
+    },
+    {
+      "path": "docs/M18_2_EVALUATION_CODE_FREEZE_V2.json",
+      "bytes": 1473,
+      "sha256": "ac9d8ca091bd095a1e74aef345876945c997ef1403a2d16a147938338cd1f1c3"
+    },
+    {
+      "path": "docs/M18_2_EXECUTION_MANIFEST.json",
+      "bytes": 2075,
+      "sha256": "8173a78bcf9b2d998ef8bec18afbfa5066bd6d182316969cfa0b602a810b6b75"
+    },
+    {
+      "path": "docs/M18_2_PREFLIGHT_ADDENDUM.md",
+      "bytes": 2890,
+      "sha256": "bf81b7520f19414940a929c05582c8b1aa9b1e2b9598382ba32124ba6748d169"
+    },
+    {
+      "path": "docs/M18_2_REPORT.md",
+      "bytes": 10221,
+      "sha256": "7a42cb53deccedd62f86d3ca3c4c9e270e0f61879dbb2208de74cc4ca31b805b"
+    },
+    {
+      "path": "tests/test_frozen_evaluation.py",
+      "bytes": 6844,
+      "sha256": "49d23954cc031ec31d10096e8ce1e54c7f6a8490c9d886e3577f8f3dfdbf4eee"
+    }
+  ],
+  "note": "Manifest intentionally excludes itself to avoid a circular digest."
+}

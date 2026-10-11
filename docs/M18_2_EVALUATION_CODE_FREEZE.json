@@ -1,0 +1,15 @@
+{
+  "version": "m18.2-evaluation-code-freeze-v1",
+  "frozen_at": "2026-10-10T17:27:07.096589+00:00",
+  "source_commit": "86e3379926fa7b1ab70c241c2e7e02273954704b",
+  "protocol_sha256": "0997c5ba7f63351bbf10ab6271aa6d996ce9232dfefd8a792e735d57e1449f5e",
+  "execution_manifest_sha256": "8173a78bcf9b2d998ef8bec18afbfa5066bd6d182316969cfa0b602a810b6b75",
+  "evaluation_code_path": "app/research/frozen_evaluation.py",
+  "evaluation_code_sha256": "960f45203ed1f95d5e531acf1460e2502dc346f439030d9435bf650e31e4f0e3",
+  "synthetic_test_path": "tests/test_frozen_evaluation.py",
+  "synthetic_test_sha256": "00d9b3ba0a0981f2977560d7a1c78d0288a41b2f35006a34158a0940474eca56",
+  "decision_test_sha256": "f7115365d9409c33599f131a18334b1f3c85ea672a6035426fb9dbf597c57810",
+  "targeted_result": "14 passed in WSL before acquisition",
+  "economic_results_accessed": false,
+  "strategy_or_protocol_changes_after_freeze_permitted": false
+}

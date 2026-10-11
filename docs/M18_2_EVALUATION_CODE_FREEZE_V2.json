@@ -1,0 +1,19 @@
+{
+  "version": "m18.2-evaluation-code-freeze-v2",
+  "frozen_at": "2026-10-10T17:30:19.076249+00:00",
+  "source_commit": "86e3379926fa7b1ab70c241c2e7e02273954704b",
+  "protocol_sha256": "0997c5ba7f63351bbf10ab6271aa6d996ce9232dfefd8a792e735d57e1449f5e",
+  "execution_manifest_sha256": "8173a78bcf9b2d998ef8bec18afbfa5066bd6d182316969cfa0b602a810b6b75",
+  "previous_freeze_record": "docs/M18_2_EVALUATION_CODE_FREEZE.json",
+  "previous_freeze_record_sha256": "d1eec853d08a8535189e4ad8cc868a9aec78a8f51155483cf0f61d1492cff797",
+  "previous_code_sha256": "960f45203ed1f95d5e531acf1460e2502dc346f439030d9435bf650e31e4f0e3",
+  "correction": "Build normalized output explicitly so converted UTC timestamps replace raw integer fields without duplicate column names; add an explicit preserved normalization resume path.",
+  "trigger": "TypeError during data normalization audit field construction before any strategy simulation or economic output.",
+  "economic_results_accessed": false,
+  "acquisition_status": "COMPLETE: 63/63 official checksums verified",
+  "evaluation_code_path": "app/research/frozen_evaluation.py",
+  "evaluation_code_sha256": "2adfb2193e8d5dc515fc597cf6204fffcd7760e262ffeb42494c7879531cd202",
+  "synthetic_test_sha256": "49d23954cc031ec31d10096e8ce1e54c7f6a8490c9d886e3577f8f3dfdbf4eee",
+  "targeted_result": "14 passed in WSL after correction and before economic evaluation",
+  "strategy_protocol_or_statistical_method_changed": false
+}
