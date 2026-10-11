@@ -1,0 +1,127 @@
+{
+  "version": "m20.2-offline-artifact-manifest-v1",
+  "source_commit": "b28ed0a4ba64ea46083e4644714fea16963f49d1",
+  "milestone_status": "OFFLINE_VERIFIED",
+  "generated_date": "2026-10-11",
+  "network_capture_performed": false,
+  "trading_performed": false,
+  "artifact_count": 23,
+  "total_bytes": 71339,
+  "files": [
+    {
+      "path": "app/research/market_capture/__init__.py",
+      "bytes": 564,
+      "sha256": "3870991d8f9d1cf516574221ba506128378d3b6e252954632c2bb1297450b7e7"
+    },
+    {
+      "path": "app/research/market_capture/__main__.py",
+      "bytes": 676,
+      "sha256": "831bc16dd7c0e64ed4adda87a765397b7a377901bbf4d7035b2ec4fc48cff54f"
+    },
+    {
+      "path": "app/research/market_capture/book.py",
+      "bytes": 7768,
+      "sha256": "db0464adc216db6b3030a197c942633f1117d96b76ffa64994a167cd934b1664"
+    },
+    {
+      "path": "app/research/market_capture/engine.py",
+      "bytes": 11596,
+      "sha256": "64cc8e034ad289446e71c6ab1d01ffceac7b44915600c7026b9329f39fead60d"
+    },
+    {
+      "path": "app/research/market_capture/envelope.py",
+      "bytes": 1911,
+      "sha256": "da237f839d5b37dbbd46f61feb9eaba0923af49797f54085bd402dd790c333b9"
+    },
+    {
+      "path": "app/research/market_capture/queueing.py",
+      "bytes": 809,
+      "sha256": "a6dd3a7f23ccfd039d2c7798a26ed814e98c5f6f42775c3df098724b4bd3ad83"
+    },
+    {
+      "path": "app/research/market_capture/replay.py",
+      "bytes": 750,
+      "sha256": "6d5c75dc9cf5cdcbe6c07010d8da083cd411c4ad1d87151f599f2c0655981e9f"
+    },
+    {
+      "path": "app/research/market_capture/storage.py",
+      "bytes": 4481,
+      "sha256": "d919968f3b5e1e6ea45d7884f7577d6a0f6732cfc5494d577a27d5ba62b98f13"
+    },
+    {
+      "path": "app/research/market_capture/transport.py",
+      "bytes": 919,
+      "sha256": "6ae435a88bb4223b09c89d9a12a50d8ba6e4e61f28ec5113bfb645c8e9597cc4"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/equivalence.json",
+      "bytes": 291,
+      "sha256": "be07e2ecbb4ebc22b3954a65a0b4d0f9bb128f4eca30a42d75160e48f7a3208c"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/replay_report.json",
+      "bytes": 1098,
+      "sha256": "31132f1bacc7ce9e5222cc26c2b144f8dfc82614979f3f4a7dd8b9218f46ea35"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/synthetic_final_equivalence.json",
+      "bytes": 383,
+      "sha256": "1caec5ec0f029fda71674b922de6de18587ab9adcaf7ee480cd7c67a828d49a6"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/synthetic_final_replay_report.json",
+      "bytes": 1771,
+      "sha256": "207fd26d1a706a02b2a0260107732fa62243ec60f6416aa68cc97adc7fdb3e81"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/synthetic_final/manifest.json",
+      "bytes": 373,
+      "sha256": "7ea0519474893fead56b45091da841e076a74894ef77bb94fe5b7851d79025f9"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/synthetic_final/raw.jsonl",
+      "bytes": 3614,
+      "sha256": "e986bf0516be9663e9a61223879e21da006b2a2d526fa57605942a5e45ef416f"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/synthetic_final/report.json",
+      "bytes": 1774,
+      "sha256": "177ed8fe93a4fc3ada6ad7bbee831a71823d8fdd0eb24f93f87388cd7d4c8e99"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/synthetic_run/manifest.json",
+      "bytes": 373,
+      "sha256": "f1c4a5528e1963a723923db16043e05f1fac0d28b347866d08aba0eaa40c0683"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/synthetic_run/raw.jsonl",
+      "bytes": 3603,
+      "sha256": "d48d5c40c5c8eed5a74c78df6d872ed8cf1152b47413a3270b7d07f1dd9bb584"
+    },
+    {
+      "path": "data/research/m20_2_offline_capture_v1/synthetic_run/report.json",
+      "bytes": 1101,
+      "sha256": "1bd9d96890a68d21b34a0bd63b4732c67752cade7a25577637a966e845519f5b"
+    },
+    {
+      "path": "docs/M20_2_COMPARABILITY_ADDENDUM.md",
+      "bytes": 3749,
+      "sha256": "ff4cbff074a41e1518f3f4bb472f30a07f29ee74576616c289f4ce610d4022c3"
+    },
+    {
+      "path": "docs/M20_2_PROTOCOL.md",
+      "bytes": 4393,
+      "sha256": "93a3ad32c2bad11b0e0e7e89dc45c6a1f0be3510235661d09aabec4af02bdab3"
+    },
+    {
+      "path": "docs/M20_2_REPORT.md",
+      "bytes": 7390,
+      "sha256": "a55398ff92d16c3492b7894e320703c68639868282822baa2a316449ba547384"
+    },
+    {
+      "path": "tests/test_market_capture_offline.py",
+      "bytes": 11952,
+      "sha256": "5cc5f9c289e78845ed849de3a9191ebdf5c660ffeb7e3550fb2dce791aadc72b"
+    }
+  ]
+}
