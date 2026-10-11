@@ -1,0 +1,119 @@
+{
+  "version": "m20.5-extended-capture-readiness-manifest-v1",
+  "source_commit": "f58ae976e39e314afdf093f475108e8396fc730d",
+  "published_m20_4_commit": "f58ae976e39e314afdf093f475108e8396fc730d",
+  "verdict": "BLOCKED_BY_RESOURCES",
+  "stage_b_executed": false,
+  "market_data_connections_made": false,
+  "trading_performed": false,
+  "profile": {
+    "max_duration_seconds": 604800,
+    "capture_cap_bytes": 100000000000,
+    "linux_min_free_bytes": 10000000000,
+    "physical_host_min_free_bytes": 50000000000,
+    "physical_host_preflight_required_bytes": 150000000000
+  },
+  "measured_storage": {
+    "linux_free_bytes": 1023069380608,
+    "windows_host_free_bytes": 131268493312
+  },
+  "verification": {
+    "targeted_pytest": "88 passed in 1.23s",
+    "full_wsl_pytest": "418 passed, 3 warnings in 35.03s",
+    "pip_check": "No broken requirements found",
+    "protected_fixtures": "55/55 matched",
+    "m20_5_baseline_commit_blobs": "8/8 matched",
+    "frozen_m20_4": "6/6 matched",
+    "legacy_m20_4_replay": "VERIFIED_FINALIZED; derived fields match",
+    "git_diff_check": "passed"
+  },
+  "artifact_count": 17,
+  "artifacts": [
+    {
+      "path": "app/research/market_capture/__main__.py",
+      "bytes": 2884,
+      "sha256": "0a74c485662396b983219721e289191e720ceee1511f2c16639f7de9d45d2552"
+    },
+    {
+      "path": "app/research/market_capture/book.py",
+      "bytes": 12155,
+      "sha256": "a1670956309e814decfa987260f4d0df61606e8da18158228aa5cd00c37bb309"
+    },
+    {
+      "path": "app/research/market_capture/engine.py",
+      "bytes": 19440,
+      "sha256": "2fdc3845bcf2e7895bd74e02c228df1b504ae3aab590664539aa8712012bfeba"
+    },
+    {
+      "path": "app/research/market_capture/public_adapter.py",
+      "bytes": 32135,
+      "sha256": "b79611e9d9e83b87df24221f925c04ba1425d0039057b38dedd4ee9b348e5013"
+    },
+    {
+      "path": "app/research/market_capture/replay.py",
+      "bytes": 4243,
+      "sha256": "565f029ce52b2a323154b3b133157cf88b6d05c0e366e6a7c37731c04a2cb0ec"
+    },
+    {
+      "path": "app/research/market_capture/storage.py",
+      "bytes": 9598,
+      "sha256": "b5f8cd89563f6848be83f1106dedcac7ac6d8244f37d767c50f90dd6bf83cc6e"
+    },
+    {
+      "path": "app/research/market_capture/comparability.py",
+      "bytes": 5606,
+      "sha256": "85088aeb367355f6f7ce918507f00dc4346b39bd33b007b006b0d4325b688ed3"
+    },
+    {
+      "path": "app/research/market_capture/host_space.py",
+      "bytes": 2466,
+      "sha256": "96f966523cbe48832605e101c379a71bb9e4fc4d0925da158da31f784604793a"
+    },
+    {
+      "path": "app/research/market_capture/process_wrapper.py",
+      "bytes": 1750,
+      "sha256": "7f86427e71f4a6f92be2553cd046c717de3a7e0fc20a4723339b2ec00b51e96b"
+    },
+    {
+      "path": "tests/test_market_capture_readiness.py",
+      "bytes": 12699,
+      "sha256": "7f9c4a8f417c75b823817de325b24877aefc699d602c1e93114ffe39c3510aac"
+    },
+    {
+      "path": "docs/M20_5_PROTOCOL.md",
+      "bytes": 4474,
+      "sha256": "520714c94e87d66e4a59c54936175a6fb158b1ba2323bc59a97901d788be90cf"
+    },
+    {
+      "path": "docs/M20_5_BASELINE_HASHES.json",
+      "bytes": 1559,
+      "sha256": "3f6dc5798fcfba3c2a67b5ccb740908e2ebf72c1abb04e7d59da92a66d24a471"
+    },
+    {
+      "path": "docs/M20_5_REPORT.md",
+      "bytes": 8544,
+      "sha256": "955407313ce4242b6b4397e7f27e7089e7031dd6c49c70fd55b06d2c67127960"
+    },
+    {
+      "path": "docs/M20_5_STAGE_B_READINESS.md",
+      "bytes": 2459,
+      "sha256": "da3ae53e2c34ac0debcf2168b9d9698bbc4a7640d78b880e4ac8bc267ce04769"
+    },
+    {
+      "path": "data/research/m20_5_extended_readiness_v1/comparability_audit.json",
+      "bytes": 1446,
+      "sha256": "9baf0a04afd801ab2d5ce7e7600bd82f63f44e40a47f8a169a37f16c089fc364"
+    },
+    {
+      "path": "data/research/m20_5_extended_readiness_v1/metadata_analysis.json",
+      "bytes": 2496,
+      "sha256": "5e27379f27085006914c03bfb0211e6c10b5e559a412ab12d7a14060febea8de"
+    },
+    {
+      "path": "data/research/m20_5_extended_readiness_v1/verification_summary.json",
+      "bytes": 658,
+      "sha256": "7b25264a84563efa6270b4a034e657691ff03e9cc3cd46c2fc41d0386de1da88"
+    }
+  ],
+  "note": "This manifest excludes itself. Derived outputs are compact, create-only and ignored by Git; M20.5 is uncommitted and unpushed."
+}

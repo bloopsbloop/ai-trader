@@ -77,9 +77,12 @@ class Checkpoint:
 
 
 class BookState:
-    def __init__(self, *, checkpoint_limit: int = 32, buffer_limit: int = 256) -> None:
+    def __init__(self, *, checkpoint_limit: int = 32, buffer_limit: int = 256,
+                 level_limit: int | None = None) -> None:
         if checkpoint_limit < 1 or buffer_limit < 1:
             raise ValueError("retention limits must be positive")
+        if level_limit is not None and level_limit < 1:
+            raise ValueError("book level limit must be positive")
         self.bids: dict[Decimal, Decimal] = {}
         self.asks: dict[Decimal, Decimal] = {}
         self.update_id: int | None = None
@@ -87,16 +90,20 @@ class BookState:
         self.invalid_reason: str | None = "awaiting_snapshot"
         self.checkpoint_limit = checkpoint_limit
         self.buffer_limit = buffer_limit
+        self.level_limit = level_limit
         self.buffer: deque[dict[str, object]] = deque()
         self.checkpoints: OrderedDict[int, Checkpoint] = OrderedDict()
         self.batch_ranges: deque[tuple[int, int]] = deque(maxlen=checkpoint_limit)
         self.known_snapshot_levels: int | None = None
+        self.snapshot_bid_levels: int | None = None
+        self.snapshot_ask_levels: int | None = None
         self.invariant_checks = 0
         self.invariant_failures = 0
 
     def start_epoch(self, reason: str = "awaiting_snapshot") -> None:
         self.bids.clear(); self.asks.clear(); self.buffer.clear(); self.checkpoints.clear(); self.batch_ranges.clear()
         self.update_id = None; self.known_snapshot_levels = None
+        self.snapshot_bid_levels = None; self.snapshot_ask_levels = None
         self.valid = False; self.invalid_reason = reason
 
     def invalidate(self, reason: str) -> None:
@@ -129,8 +136,7 @@ class BookState:
         asks = _levels(event["a"], allow_zero=True)  # type: ignore[arg-type]
         return U, u, bids, asks
 
-    @staticmethod
-    def _apply_to(bids: dict[Decimal, Decimal], asks: dict[Decimal, Decimal],
+    def _apply_to(self, bids: dict[Decimal, Decimal], asks: dict[Decimal, Decimal],
                   bid_changes: list[tuple[Decimal, Decimal]], ask_changes: list[tuple[Decimal, Decimal]]) -> tuple[dict[Decimal, Decimal], dict[Decimal, Decimal]]:
         next_bids, next_asks = dict(bids), dict(asks)
         for side, changes in ((next_bids, bid_changes), (next_asks, ask_changes)):
@@ -138,12 +144,19 @@ class BookState:
                 if qty == 0: side.pop(price, None)
                 else: side[price] = qty
         _check_book(next_bids, next_asks)
+        if self.level_limit is not None and (len(next_bids) > self.level_limit
+                                              or len(next_asks) > self.level_limit):
+            raise BufferError("book level limit exceeded")
         return next_bids, next_asks
 
     def load_snapshot(self, snapshot: dict[str, object]) -> list[str]:
         last = _integer(snapshot["lastUpdateId"], "lastUpdateId")
         candidate_bids = _side(snapshot["bids"])  # type: ignore[arg-type]
         candidate_asks = _side(snapshot["asks"])  # type: ignore[arg-type]
+        if self.level_limit is not None and (len(candidate_bids) > self.level_limit
+                                              or len(candidate_asks) > self.level_limit):
+            raise BufferError("snapshot exceeds book level limit")
+        snapshot_bid_levels, snapshot_ask_levels = len(candidate_bids), len(candidate_asks)
         self.invariant_checks += 1
         try: _check_book(candidate_bids, candidate_asks)
         except ValueError:
@@ -171,7 +184,8 @@ class BookState:
             self.invalidate("snapshot_buffer_failure")
             raise
         self.bids, self.asks, self.update_id = candidate_bids, candidate_asks, candidate_id
-        self.known_snapshot_levels = max(len(candidate_bids), len(candidate_asks))
+        self.snapshot_bid_levels, self.snapshot_ask_levels = snapshot_bid_levels, snapshot_ask_levels
+        self.known_snapshot_levels = max(snapshot_bid_levels, snapshot_ask_levels)
         self.valid, self.invalid_reason = True, None
         self.buffer.clear(); self.checkpoints.clear(); self.batch_ranges.clear()
         for item in candidate_ranges: self.batch_ranges.append(item)
@@ -223,3 +237,23 @@ class BookState:
                 "bids": [[str(p), str(self.bids[p])] for p in sorted(self.bids, reverse=True)],
                 "asks": [[str(p), str(self.asks[p])] for p in sorted(self.asks)],
                 "known_snapshot_levels": self.known_snapshot_levels, "buffered_depth": len(self.buffer)}
+
+    def report_summary(self, *, top_levels: int = 5) -> dict[str, object]:
+        if top_levels < 1: raise ValueError("top_levels must be positive")
+        bids = sorted(self.bids, reverse=True)[:top_levels]
+        asks = sorted(self.asks)[:top_levels]
+        return {
+            "valid": self.valid,
+            "invalid_reason": self.invalid_reason,
+            "update_id": self.update_id,
+            "level_counts": {"bids": len(self.bids), "asks": len(self.asks)},
+            "snapshot_level_counts": {
+                "bids": self.snapshot_bid_levels,
+                "asks": self.snapshot_ask_levels,
+            },
+            "top_bids": [[str(price), str(self.bids[price])] for price in bids],
+            "top_asks": [[str(price), str(self.asks[price])] for price in asks],
+            "top_levels_limit": top_levels,
+            "buffered_depth": len(self.buffer),
+            "book_level_limit_per_side": self.level_limit,
+        }

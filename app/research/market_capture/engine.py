@@ -22,6 +22,10 @@ class CaptureConfig:
     utc_step_tolerance_ns: int = 1_000_000_000
     snapshot_retry_limit: int = 3
     max_record_bytes: int = 1024 * 1024
+    report_schema_version: str = "legacy-full-book-v1"
+    diagnostic_history_limit: int = 0
+    book_level_limit: int = 0
+    report_top_levels: int = 5
 
     @classmethod
     def from_dict(cls, value: dict[str, object]) -> "CaptureConfig":
@@ -57,6 +61,10 @@ class CaptureReport:
     partial_tail_detected: bool = False
     replay_verification: dict[str, object] = field(default_factory=dict)
     transport_telemetry: dict[str, object] = field(default_factory=dict)
+    state_transition_total: int = 0
+    state_transition_omitted: int = 0
+    session_boundary_total: int = 0
+    session_boundary_omitted: int = 0
 
     def as_dict(self) -> dict[str, object]: return asdict(self)
 
@@ -65,9 +73,15 @@ class CaptureEngine:
     def __init__(self, config: CaptureConfig, *, writer: BoundedRunWriter | None = None,
                  processing_mode: str = "mock_capture") -> None:
         self.config = config; self.writer = writer; self.processing_mode = processing_mode
-        self.book = BookState(checkpoint_limit=config.checkpoint_limit, buffer_limit=config.buffer_limit)
+        if config.report_schema_version not in {"legacy-full-book-v1", "bounded-book-v2"}:
+            raise ValueError("unsupported report schema")
+        if config.diagnostic_history_limit < 0 or config.book_level_limit < 0:
+            raise ValueError("diagnostic and book limits must be non-negative")
+        self.book = BookState(checkpoint_limit=config.checkpoint_limit, buffer_limit=config.buffer_limit,
+                              level_limit=config.book_level_limit or None)
         self.counters = QualityCounters(); self.rejections: dict[str, int] = {}
-        self.session_boundaries: list[str] = []; self._capture_sequences: dict[str, int] = {}
+        self.session_boundaries: list[str] = []; self.session_boundary_total = 0
+        self.session_boundary_omitted = 0; self._capture_sequences: dict[str, int] = {}
         self._observed_sequences: dict[str, int] = {}; self._current_session: str | None = None
         self._last_utc_ns: int | None = None; self._last_mono_ns: int | None = None
         self.valid_duration_ns = 0; self.invalid_duration_ns = 0; self.unknown_duration_intervals = 0
@@ -76,6 +90,15 @@ class CaptureEngine:
         self.transport_telemetry: dict[str, object] = {}
         self.state_transitions: list[dict[str, object]] = [{"record": 0, "valid": False,
             "reason": "awaiting_snapshot", "update_id": None}]
+        self.state_transition_total = 1; self.state_transition_omitted = 0
+
+    def _bounded_history(self, values: list[object], value: object, *, transition: bool) -> None:
+        values.append(value)
+        limit = self.config.diagnostic_history_limit
+        if limit and len(values) > limit:
+            values.pop(0)
+            if transition: self.state_transition_omitted += 1
+            else: self.session_boundary_omitted += 1
 
     def request_stop(self) -> None: self._stop_requested = True
 
@@ -85,8 +108,10 @@ class CaptureEngine:
     def _transition(self, before: tuple[bool, str | None, int | None]) -> None:
         after = (self.book.valid, self.book.invalid_reason, self.book.update_id)
         if after[:2] != before[:2]:
-            self.state_transitions.append({"record": self.counters.received, "valid": after[0],
-                                           "reason": after[1], "update_id": after[2]})
+            self.state_transition_total += 1
+            self._bounded_history(self.state_transitions,
+                {"record": self.counters.received, "valid": after[0],
+                 "reason": after[1], "update_id": after[2]}, transition=True)
 
     def make_envelope(self, message: TransportMessage, clock: Clock) -> RawEnvelope:
         utc, mono = clock.sample(); seq = self._capture_sequences.get(message.session_id, 0) + 1
@@ -131,7 +156,8 @@ class CaptureEngine:
             if self._current_session is not None:
                 before = (self.book.valid, self.book.invalid_reason, self.book.update_id)
                 self.book.start_epoch("session_change_requires_snapshot"); self._transition(before)
-            self._current_session = envelope.session_id; self.session_boundaries.append(envelope.session_id)
+            self._current_session = envelope.session_id; self.session_boundary_total += 1
+            self._bounded_history(self.session_boundaries, envelope.session_id, transition=False)
         expected = self._observed_sequences.get(envelope.session_id, 0) + 1
         if envelope.receive_sequence != expected:
             before = (self.book.valid, self.book.invalid_reason, self.book.update_id)
@@ -208,6 +234,8 @@ class CaptureEngine:
                 self.counters.snapshot_retries_exhausted += 1
                 raise ValueError("snapshot retry exhaustion")
             outcomes = self.book.load_snapshot(p); self.snapshot_attempts = 0
+            if self.config.report_schema_version == "legacy-full-book-v1":
+                self.book.known_snapshot_levels = max(len(self.book.bids), len(self.book.asks))
             for outcome in outcomes: self._depth_outcome(outcome)
             return
         if stream == "bookTicker":
@@ -269,13 +297,16 @@ class CaptureEngine:
         eligible = self.counters.comparable + self.counters.unmatched + self.counters.stale + self.counters.inconsistent
         exact = self.counters.comparable + self.counters.inconsistent
         outcome = "completed" if self.stop_reason == "input_exhausted" else "stopped"
+        book = (self.book.report_summary(top_levels=self.config.report_top_levels)
+                if self.config.report_schema_version == "bounded-book-v2"
+                else self.book.serializable())
         return CaptureReport(
             status=outcome.upper(), processing_mode=self.processing_mode, run_outcome=outcome,
             stop_reason=self.stop_reason, stop_reason_source=self.stop_reason_source,
             data_quality=("INVALID" if not self.book.valid else
                           "VALID_WITH_REJECTIONS" if self.counters.rejected else "VALID"),
             integrity_status="CAPTURE_NOT_REPLAY_VERIFIED",
-            counters=self.counters.as_dict(), rejection_reasons=dict(self.rejections), book=self.book.serializable(),
+            counters=self.counters.as_dict(), rejection_reasons=dict(self.rejections), book=book,
             valid_duration_ns=self.valid_duration_ns, invalid_duration_ns=self.invalid_duration_ns,
             unknown_duration_intervals=self.unknown_duration_intervals,
             measured_duration_ns=self.valid_duration_ns + self.invalid_duration_ns,
@@ -291,7 +322,11 @@ class CaptureEngine:
                              "denominator": self.book.invariant_checks, "failures": self.book.invariant_failures},
             state_transitions=list(self.state_transitions), session_boundaries=list(self.session_boundaries),
             effective_config=asdict(self.config), bytes_written=self.writer.bytes_written if self.writer else 0,
-            transport_telemetry=dict(self.transport_telemetry))
+            transport_telemetry=dict(self.transport_telemetry),
+            state_transition_total=self.state_transition_total,
+            state_transition_omitted=self.state_transition_omitted,
+            session_boundary_total=self.session_boundary_total,
+            session_boundary_omitted=self.session_boundary_omitted)
 
     def finalize(self) -> CaptureReport:
         report = self.report()

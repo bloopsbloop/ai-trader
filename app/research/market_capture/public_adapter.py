@@ -13,10 +13,20 @@ from uuid import uuid4
 from .engine import CaptureConfig, CaptureEngine, CaptureReport
 from .envelope import ControlRecord, RawEnvelope
 from .queueing import BackpressureError, BoundedEventQueue
-from .storage import BoundedRunWriter, FreeSpaceError, RecordTooLargeError, StorageLimitError, WriterClosedError
+from .storage import (BoundedRunWriter, FinalizationMetadataError, FreeSpaceError,
+                      MAX_FINALIZATION_BYTES, MAX_FINAL_REPORT_BYTES,
+                      RecordTooLargeError, StorageLimitError, WriterClosedError)
 
 WS_URL = "wss://data-stream.binance.vision/stream?streams=btcusdt@trade/btcusdt@bookTicker/btcusdt@depth@100ms"
 SNAPSHOT_URL = "https://data-api.binance.vision/api/v3/depth"
+STAGE_A_CONFIRM = "PUBLIC_MARKET_CAPTURE_AUTHORIZED"
+EXTENDED_CONFIRM = "EXTENDED_PUBLIC_MARKET_CAPTURE_AUTHORIZED"
+STAGE_A_MAX_NS = 1_800_000_000_000
+STAGE_A_MAX_BYTES = 2 * 1024 ** 3
+EXTENDED_MAX_NS = 604_800_000_000_000
+EXTENDED_MAX_BYTES = 100_000_000_000
+EXTENDED_HOST_RESERVE_BYTES = 50_000_000_000
+EXTENDED_LINUX_RESERVE_BYTES = 10_000_000_000
 
 
 class TransportDisconnected(RuntimeError): pass
@@ -27,10 +37,12 @@ class SnapshotResponseTooLarge(RuntimeError): pass
 class SnapshotExhausted(RuntimeError): pass
 
 
-_STORAGE_ERRORS = (StorageLimitError, FreeSpaceError, RecordTooLargeError, WriterClosedError, OSError)
+_STORAGE_ERRORS = (StorageLimitError, FinalizationMetadataError, FreeSpaceError,
+                   RecordTooLargeError, WriterClosedError, OSError)
 
 
 def _storage_reason(exc: BaseException) -> str:
+    if isinstance(exc, FinalizationMetadataError): return "final_metadata_limit"
     if isinstance(exc, StorageLimitError): return "storage_cap"
     if isinstance(exc, FreeSpaceError): return "minimum_free_space"
     if isinstance(exc, RecordTooLargeError): return "record_too_large"
@@ -50,6 +62,7 @@ class SystemClock:
 
 @dataclass(frozen=True)
 class PublicAdapterConfig:
+    profile: str = "stage-a"
     symbol: str = "BTCUSDT"
     max_elapsed_ns: int = 1_800_000_000_000
     max_total_bytes: int = 2 * 1024 ** 3
@@ -66,13 +79,23 @@ class PublicAdapterConfig:
     cleanup_timeout_seconds: float = 2.0
     read_poll_seconds: float = 5.0
     idle_diagnostic_ns: int = 30_000_000_000
+    host_min_free_bytes: int = 0
+    host_check_interval_bytes: int = 64 * 1024 * 1024
+    max_final_report_bytes: int = MAX_FINAL_REPORT_BYTES
+    report_schema_version: str = "bounded-book-v2"
+    diagnostic_history_limit: int = 256
+    book_level_limit: int = 20_000
+    strict_profile_limits: bool = False
 
     def validate(self) -> None:
-        if self.symbol != "BTCUSDT": raise ValueError("M20.3 is BTCUSDT-only")
-        if self.max_elapsed_ns <= 0 or self.max_elapsed_ns > 1_800_000_000_000:
-            raise ValueError("deadline must be within 30 minutes")
-        if self.max_total_bytes <= 0 or self.max_total_bytes > 2 * 1024 ** 3:
-            raise ValueError("storage cap must be at most 2 GiB")
+        if self.symbol != "BTCUSDT": raise ValueError("public capture is BTCUSDT-only")
+        if self.profile not in {"stage-a", "extended"}: raise ValueError("unknown capture profile")
+        max_ns = STAGE_A_MAX_NS if self.profile == "stage-a" else EXTENDED_MAX_NS
+        max_bytes = STAGE_A_MAX_BYTES if self.profile == "stage-a" else EXTENDED_MAX_BYTES
+        if self.max_elapsed_ns <= 0 or self.max_elapsed_ns > max_ns:
+            raise ValueError("deadline exceeds selected profile")
+        if self.max_total_bytes <= 0 or self.max_total_bytes > max_bytes:
+            raise ValueError("storage cap exceeds selected profile")
         positive = (self.min_free_bytes, self.reserve_final_bytes, self.queue_capacity,
                     self.max_record_bytes, self.snapshot_attempt_limit, self.recovery_limit,
                     self.connect_timeout_seconds, self.cleanup_timeout_seconds,
@@ -80,6 +103,31 @@ class PublicAdapterConfig:
         if min(positive) <= 0: raise ValueError("limits must be positive")
         if self.snapshot_limit != 5000: raise ValueError("snapshot limit is frozen at 5000")
         if self.reconnect_limit < 0: raise ValueError("reconnect limit must be non-negative")
+        if self.strict_profile_limits and self.reserve_final_bytes < MAX_FINALIZATION_BYTES:
+            raise ValueError("final reserve is smaller than the bounded final metadata budget")
+        if self.max_final_report_bytes > MAX_FINAL_REPORT_BYTES or self.max_final_report_bytes < 1:
+            raise ValueError("final report bound is invalid")
+        if self.report_schema_version != "bounded-book-v2":
+            raise ValueError("live profiles require bounded-book-v2 reports")
+        if self.diagnostic_history_limit < 1 or self.book_level_limit < self.snapshot_limit:
+            raise ValueError("bounded diagnostic or book limit is invalid")
+        if self.host_check_interval_bytes < 1 or self.host_min_free_bytes < 0:
+            raise ValueError("host-space limits are invalid")
+        if self.profile == "extended" and self.host_min_free_bytes < EXTENDED_HOST_RESERVE_BYTES:
+            raise ValueError("extended profile requires the frozen physical-host reserve")
+
+
+def capture_profile(name: str, *, duration_seconds: float | None = None) -> PublicAdapterConfig:
+    if name == "stage-a":
+        seconds = 1800.0 if duration_seconds is None else duration_seconds
+        return PublicAdapterConfig(profile=name, max_elapsed_ns=int(seconds * 1_000_000_000),
+                                   strict_profile_limits=True)
+    if name == "extended":
+        seconds = 604800.0 if duration_seconds is None else duration_seconds
+        return PublicAdapterConfig(profile=name, max_elapsed_ns=int(seconds * 1_000_000_000),
+            max_total_bytes=EXTENDED_MAX_BYTES, min_free_bytes=EXTENDED_LINUX_RESERVE_BYTES,
+            host_min_free_bytes=EXTENDED_HOST_RESERVE_BYTES, strict_profile_limits=True)
+    raise ValueError("unknown capture profile")
 
 
 @dataclass(frozen=True)
@@ -118,8 +166,12 @@ class AdapterTelemetry:
     local_drops: int = 0
     queue_high_water: int = 0
     reconnects: int = 0
+    consecutive_reconnects_current: int = 0
+    max_consecutive_reconnects: int = 0
     snapshot_attempts: int = 0
     recovery_cycles: int = 0
+    consecutive_recoveries_current: int = 0
+    max_consecutive_recoveries: int = 0
     idle_diagnostics: int = 0
     oversized_messages: int = 0
     cpu_peak_percent: str = "UNAVAILABLE"
@@ -195,7 +247,8 @@ class WebsocketsConnector:
 
 
 def preflight(config: PublicAdapterConfig, output_root: Path, run_id: str,
-              *, free_space: Callable[[Path], int] | None = None) -> dict[str, object]:
+              *, free_space: Callable[[Path], int] | None = None,
+              host_free_space: Callable[[], int] | None = None) -> dict[str, object]:
     config.validate()
     if not run_id or Path(run_id).name != run_id or run_id in {".", ".."}:
         raise ValueError("run_id must be one path component")
@@ -211,10 +264,23 @@ def preflight(config: PublicAdapterConfig, output_root: Path, run_id: str,
     available = (free_space or (lambda path: shutil.disk_usage(path).free))(root)
     required = config.max_total_bytes + config.min_free_bytes
     if available < required: raise FreeSpaceError(f"preflight requires {required} bytes free")
-    return {"network_performed": False, "symbol": config.symbol, "websocket_url": WS_URL,
+    host_available: int | None = None; host_required: int | None = None
+    if config.profile == "extended":
+        if host_free_space is None: raise FreeSpaceError("extended preflight requires physical-host monitoring")
+        try: host_available = host_free_space()
+        except Exception as exc: raise FreeSpaceError("physical-host free-space check unavailable") from exc
+        host_required = config.max_total_bytes + config.host_min_free_bytes
+        if host_available < host_required:
+            raise FreeSpaceError(f"extended preflight requires {host_required} physical-host bytes free")
+    return {"network_performed": False, "profile": config.profile,
+            "symbol": config.symbol, "websocket_url": WS_URL,
             "snapshot_url": SNAPSHOT_URL, "deadline_seconds": config.max_elapsed_ns / 1e9,
             "storage_cap_bytes": config.max_total_bytes, "minimum_free_after_write_bytes": config.min_free_bytes,
             "minimum_free_at_start_bytes": required, "available_bytes": available,
+            "physical_host_available_bytes": host_available,
+            "physical_host_minimum_at_start_bytes": host_required,
+            "finalization_reserve_bytes": config.reserve_final_bytes,
+            "bounded_finalization_max_bytes": MAX_FINALIZATION_BYTES,
             "output_path": str(prospective), "status": "READY_FOR_SEPARATE_LIVE_AUTHORIZATION"}
 
 
@@ -328,7 +394,8 @@ class PublicMarketAdapter:
             max_size=self.config.max_record_bytes,max_queue=self.config.queue_capacity),timeout=limit)
 
     async def run(self, *, cancellation: asyncio.Event | None=None) -> CaptureReport:
-        _,self._started_mono=self.clock.sample(); session_number=0; reconnects=0; stop_reason="running"
+        _,self._started_mono=self.clock.sample(); session_number=0; reconnects=0
+        consecutive_reconnects=0; stop_reason="running"
         storage_failed=False; connection: WebSocketConnection | None=None
         recv_task: asyncio.Task[object] | None=None; snapshot_task: asyncio.Task[object] | None=None
         try:
@@ -340,10 +407,14 @@ class PublicMarketAdapter:
                 except asyncio.TimeoutError:
                     stop_reason="time_limit" if self._remaining_seconds()<=0 else "connect_timeout"; break
                 except Exception as exc:
-                    if reconnects>=self.config.reconnect_limit: stop_reason="connect_retry_exhausted"; break
-                    reconnects+=1; self.telemetry.reconnects=reconnects
-                    self._control("reconnect_wait",{"reason":str(exc),"attempt":reconnects})
-                    if not await self._sleep_with_budget(2**(reconnects-1)): stop_reason="time_limit"; break
+                    if consecutive_reconnects>=self.config.reconnect_limit: stop_reason="connect_retry_exhausted"; break
+                    reconnects+=1; consecutive_reconnects+=1; self.telemetry.reconnects=reconnects
+                    self.telemetry.consecutive_reconnects_current=consecutive_reconnects
+                    self.telemetry.max_consecutive_reconnects=max(
+                        self.telemetry.max_consecutive_reconnects,consecutive_reconnects)
+                    self._control("reconnect_wait",{"reason":str(exc),"attempt":consecutive_reconnects,
+                                                     "total":reconnects})
+                    if not await self._sleep_with_budget(2**(consecutive_reconnects-1)): stop_reason="time_limit"; break
                     continue
                 self._control("session_start",{"session":session})
                 _,self._last_message_mono=self.clock.sample(); self._idle_reported=False
@@ -374,11 +445,17 @@ class PublicMarketAdapter:
                             self.engine.process_envelope(snap)
                             if not self.engine.book.valid:
                                 recovery_failures+=1; self.telemetry.recovery_cycles+=1
+                                self.telemetry.consecutive_recoveries_current=recovery_failures
+                                self.telemetry.max_consecutive_recoveries=max(
+                                    self.telemetry.max_consecutive_recoveries,recovery_failures)
                                 self._control("recovery_failure",{"attempt":recovery_failures,"reason":self.engine.book.invalid_reason or "snapshot_not_valid"})
                                 if recovery_failures>=self.config.recovery_limit:
                                     self._control("recovery_exhausted",{"reason":"snapshot_not_valid"}); stop_reason="recovery_exhausted"
                                 else: snapshot_task=asyncio.create_task(self._snapshot(session),name=f"snapshot:{session}:recovery")
-                            else: recovery_failures=0
+                            else:
+                                recovery_failures=0; consecutive_reconnects=0
+                                self.telemetry.consecutive_recoveries_current=0
+                                self.telemetry.consecutive_reconnects_current=0
                     if recv_task in done and stop_reason == "running":
                         task=recv_task; recv_task=None
                         try: value=task.result()
@@ -396,6 +473,9 @@ class PublicMarketAdapter:
                             needs_recovery=self._ingest_batch(session,raws)
                             if needs_recovery and snapshot_task is None:
                                 recovery_failures+=1; self.telemetry.recovery_cycles+=1
+                                self.telemetry.consecutive_recoveries_current=recovery_failures
+                                self.telemetry.max_consecutive_recoveries=max(
+                                    self.telemetry.max_consecutive_recoveries,recovery_failures)
                                 self._control("recovery_start",{"attempt":recovery_failures,"reason":self.engine.book.invalid_reason or "depth_recovery"})
                                 if recovery_failures>self.config.recovery_limit:
                                     self._control("recovery_exhausted",{"reason":"recovery_limit"}); stop_reason="recovery_exhausted"
@@ -405,10 +485,13 @@ class PublicMarketAdapter:
                 await self._close(connection); connection=None
                 if stop_reason != "running": break
                 if disconnected:
-                    if reconnects>=self.config.reconnect_limit: stop_reason="reconnect_exhausted"; break
-                    reconnects+=1; self.telemetry.reconnects=reconnects
-                    self._control("reconnect_wait",{"attempt":reconnects})
-                    if not await self._sleep_with_budget(2**(reconnects-1)): stop_reason="time_limit"; break
+                    if consecutive_reconnects>=self.config.reconnect_limit: stop_reason="reconnect_exhausted"; break
+                    reconnects+=1; consecutive_reconnects+=1; self.telemetry.reconnects=reconnects
+                    self.telemetry.consecutive_reconnects_current=consecutive_reconnects
+                    self.telemetry.max_consecutive_reconnects=max(
+                        self.telemetry.max_consecutive_reconnects,consecutive_reconnects)
+                    self._control("reconnect_wait",{"attempt":consecutive_reconnects,"total":reconnects})
+                    if not await self._sleep_with_budget(2**(consecutive_reconnects-1)): stop_reason="time_limit"; break
         except asyncio.CancelledError: stop_reason="cancelled"
         except _STORAGE_ERRORS as exc:
             stop_reason=_storage_reason(exc); storage_failed=True; self.writer.abort()
@@ -433,13 +516,20 @@ async def run_live_capture(config: PublicAdapterConfig, output_root: Path, run_i
                            *, connector: WebSocketConnector | None=None,
                            snapshot_client: SnapshotClient | None=None,
                            clock: RuntimeClock | None=None,
+                           host_free_space: Callable[[], int] | None=None,
                            sleep: Callable[[float], Awaitable[None]]=asyncio.sleep,
                            writer_factory: Callable[..., BoundedRunWriter]=BoundedRunWriter) -> CaptureReport:
-    preflight(config,output_root,run_id)
-    capture_config=CaptureConfig(symbol="BTCUSDT",queue_capacity=config.queue_capacity,max_record_bytes=config.max_record_bytes)
+    preflight(config,output_root,run_id,host_free_space=host_free_space)
+    capture_config=CaptureConfig(symbol="BTCUSDT",queue_capacity=config.queue_capacity,
+        max_record_bytes=config.max_record_bytes, report_schema_version=config.report_schema_version,
+        diagnostic_history_limit=config.diagnostic_history_limit, book_level_limit=config.book_level_limit)
     writer=writer_factory(output_root,run_id,max_total_bytes=config.max_total_bytes,
                           reserve_final_bytes=config.reserve_final_bytes,min_free_bytes=config.min_free_bytes,
-                          max_record_bytes=config.max_record_bytes)
+                          max_record_bytes=config.max_record_bytes,
+                          secondary_free_space=host_free_space if config.profile=="extended" else None,
+                          secondary_min_free_bytes=config.host_min_free_bytes if config.profile=="extended" else 0,
+                          secondary_check_interval_bytes=config.host_check_interval_bytes,
+                          max_report_bytes=config.max_final_report_bytes)
     engine=CaptureEngine(capture_config,writer=writer,processing_mode="public_capture")
     adapter=PublicMarketAdapter(config,engine,connector or WebsocketsConnector(),
         snapshot_client or RequestsSnapshotClient(max_response_bytes=config.max_record_bytes),clock or SystemClock(),sleep=sleep)

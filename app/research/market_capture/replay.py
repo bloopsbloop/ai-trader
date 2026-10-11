@@ -14,6 +14,8 @@ _DERIVED_FIELDS = (
     "unknown_duration_intervals", "measured_duration_ns", "comparable_status", "comparable_share",
     "mismatch_rate", "observed_sequence_continuity", "sequence_observation_coverage",
     "book_invariants", "state_transitions", "session_boundaries", "stop_reason",
+    "state_transition_total", "state_transition_omitted",
+    "session_boundary_total", "session_boundary_omitted",
 )
 
 
@@ -74,7 +76,8 @@ def replay_run(run_dir: Path, config: CaptureConfig | None = None) -> CaptureRep
     if finalized:
         stored = json.loads((run_dir / "report.json").read_text())
         current = report.as_dict()
-        mismatches = [name for name in _DERIVED_FIELDS if stored.get(name) != current.get(name)]
+        mismatches = [name for name in _DERIVED_FIELDS
+                      if name in stored and stored.get(name) != current.get(name)]
         if mismatches: raise IntegrityError("derived replay mismatch: " + ", ".join(mismatches))
         verification["derived_fields_match"] = True
     report.replay_verification = verification

@@ -1,0 +1,47 @@
+{
+  "version": "m20.5-baseline-hashes-v1",
+  "source_commit": "f58ae976e39e314afdf093f475108e8396fc730d",
+  "created_before_implementation": true,
+  "files": [
+    {
+      "path": "app/research/market_capture/__main__.py",
+      "bytes": 2066,
+      "sha256": "eef409e9e3910ac8779859194955ec87c6ba633c92d89854decfc46d4b1eb1f2"
+    },
+    {
+      "path": "app/research/market_capture/book.py",
+      "bytes": 10167,
+      "sha256": "21a26c7bb543b412e668ca1c578e44510f4a56d09072507bc48ec14e6414ebde"
+    },
+    {
+      "path": "app/research/market_capture/engine.py",
+      "bytes": 17475,
+      "sha256": "230eb541a90dcd3866976b0151530af3d14c7fa1c551cb6c1b6d636e9de01c99"
+    },
+    {
+      "path": "app/research/market_capture/public_adapter.py",
+      "bytes": 25846,
+      "sha256": "8ff7636149f36c9a7dd57b60ae47bfa51e65dcc8066913ea9207302850630f86"
+    },
+    {
+      "path": "app/research/market_capture/replay.py",
+      "bytes": 4086,
+      "sha256": "9296915f85d2953980cc45e14727be399091b020b359016cf7e3c0d6ba9a8f2a"
+    },
+    {
+      "path": "app/research/market_capture/storage.py",
+      "bytes": 7330,
+      "sha256": "9ecb7f0e39487232cc55308856c827f8becd961fcea75392fa0b327a82bd31a7"
+    },
+    {
+      "path": "tests/test_market_capture_adapter.py",
+      "bytes": 14301,
+      "sha256": "136ceaeabfc98a55a3d5f45ca41ddbb118cf7f590da3c102a232e96a9569bbce"
+    },
+    {
+      "path": "tests/test_market_capture_adapter_audit.py",
+      "bytes": 19272,
+      "sha256": "5c606bd54b85721beacf9fa4c23dc4c2c62094439d45db7d5ecce292eafeea34"
+    }
+  ]
+}

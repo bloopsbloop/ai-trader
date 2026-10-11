@@ -5,14 +5,13 @@ import asyncio
 import json
 from pathlib import Path
 
-from .public_adapter import PublicAdapterConfig, preflight, run_live_capture
+from .host_space import HostSpaceUnavailableError, WindowsVhdxSpaceMonitor
+from .public_adapter import (EXTENDED_CONFIRM, STAGE_A_CONFIRM, PublicAdapterConfig,
+                             capture_profile, preflight, run_live_capture)
 from .replay import replay_run
 
-_CONFIRM = "PUBLIC_MARKET_CAPTURE_AUTHORIZED"
-
-
 def _adapter_config(args: argparse.Namespace) -> PublicAdapterConfig:
-    return PublicAdapterConfig(max_elapsed_ns=int(args.duration_seconds * 1_000_000_000))
+    return capture_profile(args.profile, duration_seconds=args.duration_seconds)
 
 
 def main() -> int:
@@ -24,19 +23,30 @@ def main() -> int:
         command=sub.add_parser(name,help=help_text)
         command.add_argument("--output-root",type=Path,required=True)
         command.add_argument("--run-id",required=True)
-        command.add_argument("--duration-seconds",type=float,default=1800.0)
+        command.add_argument("--profile",choices=("stage-a","extended"),default="stage-a")
+        command.add_argument("--duration-seconds",type=float)
+        command.add_argument("--windows-vhdx-path",
+            help="required for extended profile physical-host checks")
         if name=="capture":
-            command.add_argument("--confirm",default="",help=f"must equal {_CONFIRM}")
+            command.add_argument("--confirm",default="",help="must match the selected profile")
             command.add_argument("--dry-run",action="store_true",help="perform preflight and exit without network")
     args=parser.parse_args()
     if args.command=="replay":
         print(json.dumps(replay_run(args.run_dir).as_dict(),indent=2,sort_keys=True)); return 0
-    config=_adapter_config(args); result=preflight(config,args.output_root,args.run_id)
+    config=_adapter_config(args); host_monitor=None
+    if config.profile=="extended":
+        if not args.windows_vhdx_path:
+            parser.error("extended profile requires --windows-vhdx-path")
+        try: host_monitor=WindowsVhdxSpaceMonitor(args.windows_vhdx_path)
+        except (ValueError,HostSpaceUnavailableError) as exc: parser.error(str(exc))
+    result=preflight(config,args.output_root,args.run_id,host_free_space=host_monitor)
     if args.command=="preflight" or args.dry_run:
         print(json.dumps(result,indent=2,sort_keys=True)); return 0
-    if args.confirm!=_CONFIRM:
-        parser.error(f"capture requires --confirm {_CONFIRM}")
-    report=asyncio.run(run_live_capture(config,args.output_root,args.run_id))
+    expected=STAGE_A_CONFIRM if config.profile=="stage-a" else EXTENDED_CONFIRM
+    if args.confirm!=expected:
+        parser.error(f"capture requires --confirm {expected}")
+    report=asyncio.run(run_live_capture(config,args.output_root,args.run_id,
+                                        host_free_space=host_monitor))
     print(json.dumps(report.as_dict(),indent=2,sort_keys=True)); return 0
 
 

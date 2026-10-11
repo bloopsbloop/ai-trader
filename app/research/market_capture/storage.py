@@ -16,6 +16,13 @@ class FreeSpaceError(RuntimeError): pass
 class WriterClosedError(RuntimeError): pass
 class RecordTooLargeError(RuntimeError): pass
 class IntegrityError(RuntimeError): pass
+class FinalizationMetadataError(RuntimeError): pass
+
+
+MAX_FINAL_REPORT_BYTES = 512 * 1024
+MAX_FINAL_MANIFEST_BYTES = 64 * 1024
+MAX_FINAL_MARKER_BYTES = 65
+MAX_FINALIZATION_BYTES = MAX_FINAL_REPORT_BYTES + MAX_FINAL_MANIFEST_BYTES + MAX_FINAL_MARKER_BYTES
 
 
 def hash_file(path: Path, chunk_bytes: int = 1024 * 1024) -> str:
@@ -62,11 +69,22 @@ class BoundedRunWriter:
                  reserve_final_bytes: int = 4096, min_free_bytes: int = 0,
                  max_record_bytes: int = 1024 * 1024,
                  free_space: Callable[[Path], int] | None = None,
+                 secondary_free_space: Callable[[], int] | None = None,
+                 secondary_min_free_bytes: int = 0,
+                 secondary_check_interval_bytes: int = 64 * 1024 * 1024,
+                 max_report_bytes: int = MAX_FINAL_REPORT_BYTES,
+                 max_manifest_bytes: int = MAX_FINAL_MANIFEST_BYTES,
                  raw_opener: Callable[..., object] = open,
                  final_opener: Callable[..., object] = open) -> None:
         if max_total_bytes <= reserve_final_bytes or reserve_final_bytes < 1:
             raise ValueError("budget must exceed positive final reserve")
         if max_record_bytes < 1: raise ValueError("max_record_bytes must be positive")
+        if secondary_min_free_bytes < 0 or secondary_check_interval_bytes < 1:
+            raise ValueError("secondary storage limits are invalid")
+        if (secondary_min_free_bytes > 0) != (secondary_free_space is not None):
+            raise ValueError("secondary free-space monitor and minimum must be configured together")
+        if max_report_bytes < 1 or max_manifest_bytes < 1:
+            raise ValueError("final metadata limits must be positive")
         self.path = root / run_id; self.path.mkdir(parents=True, exist_ok=False)
         self.raw_path = self.path / "raw.jsonl"
         self._raw = raw_opener(self.raw_path, "xb")
@@ -74,6 +92,11 @@ class BoundedRunWriter:
         self.max_total_bytes = max_total_bytes; self.reserve_final_bytes = reserve_final_bytes
         self.min_free_bytes = min_free_bytes; self.max_record_bytes = max_record_bytes
         self.free_space = free_space or (lambda p: shutil.disk_usage(p).free)
+        self.secondary_free_space = secondary_free_space
+        self.secondary_min_free_bytes = secondary_min_free_bytes
+        self.secondary_check_interval_bytes = secondary_check_interval_bytes
+        self._secondary_checked_at = -secondary_check_interval_bytes
+        self.max_report_bytes = max_report_bytes; self.max_manifest_bytes = max_manifest_bytes
         self.closed = False; self.bytes_written = 0; self.event_records = 0; self.control_records = 0
 
     def _disk_bytes(self) -> int:
@@ -86,6 +109,13 @@ class BoundedRunWriter:
             raise StorageLimitError("next write would exceed total storage budget")
         if self.free_space(self.path) - size < self.min_free_bytes:
             raise FreeSpaceError("next write would cross minimum free-space stop")
+        if (self.secondary_free_space is not None
+                and (not keep_reserve or used - self._secondary_checked_at >= self.secondary_check_interval_bytes)):
+            try: secondary_available = self.secondary_free_space()
+            except Exception as exc: raise FreeSpaceError("secondary free-space monitor unavailable") from exc
+            self._secondary_checked_at = used
+            if secondary_available - size < self.secondary_min_free_bytes:
+                raise FreeSpaceError("next write would cross secondary minimum free-space stop")
 
     def append(self, record: RawEnvelope | ControlRecord) -> int:
         if self.closed: raise WriterClosedError("writer is closed")
@@ -124,6 +154,8 @@ class BoundedRunWriter:
         if self.closed: raise WriterClosedError("writer is closed")
         self._close_raw()
         report_bytes = (json.dumps(report, indent=2, sort_keys=True) + "\n").encode()
+        if len(report_bytes) > self.max_report_bytes:
+            raise FinalizationMetadataError("final report exceeds bounded metadata limit")
         raw_hash = hash_file(self.raw_path)
         provisional = {
             "version": "m20.2r-run-manifest-v2", "finalized": True,
@@ -136,6 +168,8 @@ class BoundedRunWriter:
             },
         }
         manifest_bytes = (json.dumps(provisional, indent=2, sort_keys=True) + "\n").encode()
+        if len(manifest_bytes) > self.max_manifest_bytes:
+            raise FinalizationMetadataError("final manifest exceeds bounded metadata limit")
         marker_bytes = (hashlib.sha256(manifest_bytes).hexdigest() + "\n").encode()
         self._preflight(len(report_bytes) + len(manifest_bytes) + len(marker_bytes), keep_reserve=False)
         self._write_final(self.path / "report.json", report_bytes)
