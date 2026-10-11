@@ -128,7 +128,7 @@ class BoundedRunWriter:
         provisional = {
             "version": "m20.2r-run-manifest-v2", "finalized": True,
             "stop_reason": stop_reason, "effective_config": effective_config,
-            "schema_versions": {"event": "m20.2r-envelope-v2", "control": "m20.2r-control-v1"},
+            "schema_versions": {"event": "m20.3-envelope-v3", "control": "m20.2r-control-v1"},
             "records": {"events": self.event_records, "controls": self.control_records},
             "files": {
                 "raw.jsonl": {"bytes": self.raw_path.stat().st_size, "sha256": raw_hash},

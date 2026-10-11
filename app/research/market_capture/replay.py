@@ -51,7 +51,8 @@ def replay_run(run_dir: Path, config: CaptureConfig | None = None) -> CaptureRep
     stop_from_control = False
     for record in records:
         if isinstance(record, ControlRecord):
-            engine.process_control(record); engine.counters.controls_persisted += 1; stop_from_control = True
+            engine.process_control(record); engine.counters.controls_persisted += 1
+            if record.kind == "stop": stop_from_control = True
         else:
             engine.process_envelope(record, persist=False); engine.counters.persisted += 1
     if not stop_from_control:

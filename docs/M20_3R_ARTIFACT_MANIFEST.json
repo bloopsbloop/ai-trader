@@ -1,0 +1,124 @@
+{
+  "version": "m20.3r-adapter-audit-artifact-manifest-v1",
+  "source_commit": "7311a11e843c9ef0f542d66d93f7c7f50167f5dc",
+  "patch_state": "uncommitted-local",
+  "milestone_status": "OFFLINE_ADAPTER_VERIFIED",
+  "generated_date": "2026-10-11",
+  "network_performed": false,
+  "stage_a_executed": false,
+  "stage_b_executed": false,
+  "artifact_count": 22,
+  "total_bytes": 139847,
+  "files": [
+    {
+      "path": "app/research/market_capture/engine.py",
+      "bytes": 17475,
+      "sha256": "230eb541a90dcd3866976b0151530af3d14c7fa1c551cb6c1b6d636e9de01c99"
+    },
+    {
+      "path": "app/research/market_capture/envelope.py",
+      "bytes": 3652,
+      "sha256": "6e12a63c168a4ced6f86736433b02b22fc2d3f6277a88d9a57d9443e3c8b3272"
+    },
+    {
+      "path": "app/research/market_capture/public_adapter.py",
+      "bytes": 25846,
+      "sha256": "8ff7636149f36c9a7dd57b60ae47bfa51e65dcc8066913ea9207302850630f86"
+    },
+    {
+      "path": "app/research/market_capture/replay.py",
+      "bytes": 4086,
+      "sha256": "9296915f85d2953980cc45e14727be399091b020b359016cf7e3c0d6ba9a8f2a"
+    },
+    {
+      "path": "data/research/m20_3_offline_adapter_v1/adapter_run_report.json",
+      "bytes": 2712,
+      "sha256": "644aa17dc3696a11d27ff0c086e82b8257aaa215c657d08f1ce63f972370c128"
+    },
+    {
+      "path": "data/research/m20_3_offline_adapter_v1/capture_report.json",
+      "bytes": 2702,
+      "sha256": "41feef8232650326c2721abc494f7e201852746f38d3a6b597459427e0a366f8"
+    },
+    {
+      "path": "data/research/m20_3_offline_adapter_v1/equivalence.json",
+      "bytes": 705,
+      "sha256": "aa3e20784b4e476802c9af8189ff385c81171e32c14b999f4de983aeddc3417b"
+    },
+    {
+      "path": "data/research/m20_3_offline_adapter_v1/replay_report.json",
+      "bytes": 2505,
+      "sha256": "bf49f6dca75e794e880a6e25c3fa7c6a27cfdf5a6bf1badb174dbfb27369f475"
+    },
+    {
+      "path": "data/research/m20_3_offline_adapter_v1/run/manifest.json",
+      "bytes": 800,
+      "sha256": "f53441df2ffb973681b277f323437d1d5b88946ac8f32287329a22e8486d1ff0"
+    },
+    {
+      "path": "data/research/m20_3_offline_adapter_v1/run/manifest.sha256",
+      "bytes": 65,
+      "sha256": "310f371ec6aebd162c3352e25b0253daeb6db82ed832e2a5a1fcaf15419a2506"
+    },
+    {
+      "path": "data/research/m20_3_offline_adapter_v1/run/raw.jsonl",
+      "bytes": 2570,
+      "sha256": "539a8c17dfb99d59e76a529f9fe0aae60fb0b567899bd3099fa31bfd5223570a"
+    },
+    {
+      "path": "data/research/m20_3_offline_adapter_v1/run/report.json",
+      "bytes": 2712,
+      "sha256": "644aa17dc3696a11d27ff0c086e82b8257aaa215c657d08f1ce63f972370c128"
+    },
+    {
+      "path": "data/research/m20_3r_adapter_audit_v1/audit_summary.json",
+      "bytes": 1767,
+      "sha256": "1e9cc76302cc7a14f5d674b3a2fa44dd6d4123bde799e47667a8781aab8f518b"
+    },
+    {
+      "path": "data/research/m20_3r_adapter_audit_v1/verification_summary.json",
+      "bytes": 813,
+      "sha256": "f663aed866314f711e3a906e5f0f77dbd35260a0444fc3b1ef2006ed680116c1"
+    },
+    {
+      "path": "docs/M20_3_ARTIFACT_MANIFEST.json",
+      "bytes": 4760,
+      "sha256": "6dea4d3df4829222dbcd4c348142832a6dd05e9b77e54c2b08b1fe9d3c1b6594"
+    },
+    {
+      "path": "docs/M20_3_PROTOCOL.md",
+      "bytes": 6806,
+      "sha256": "60e59ff137026d82b4506fb7e432488fb3273d27d6a1c9d61a204035100cf144"
+    },
+    {
+      "path": "docs/M20_3_REPORT.md",
+      "bytes": 7605,
+      "sha256": "23c5c36a314a8627392226beac4525f58c600a091ac76f47893422342892c196"
+    },
+    {
+      "path": "docs/M20_3_STAGE_A_RUNBOOK.md",
+      "bytes": 4326,
+      "sha256": "9e08f3524757441f20485647350d8448211ea8650f676e097f364019d426ac93"
+    },
+    {
+      "path": "docs/M20_3R_BASELINE_HASHES.json",
+      "bytes": 4887,
+      "sha256": "13b58a2e6fca0a7c358ca3e66935258b9196bc4ad1624a1c83243c5714016944"
+    },
+    {
+      "path": "docs/M20_3R_REPORT.md",
+      "bytes": 9480,
+      "sha256": "6e3bfc8ac7c7698489c9f2ad304f91136d1283151bdef4ed838f70a814c5b51c"
+    },
+    {
+      "path": "tests/test_market_capture_adapter_audit.py",
+      "bytes": 19272,
+      "sha256": "5c606bd54b85721beacf9fa4c23dc4c2c62094439d45db7d5ecce292eafeea34"
+    },
+    {
+      "path": "tests/test_market_capture_adapter.py",
+      "bytes": 14301,
+      "sha256": "136ceaeabfc98a55a3d5f45ca41ddbb118cf7f590da3c102a232e96a9569bbce"
+    }
+  ]
+}

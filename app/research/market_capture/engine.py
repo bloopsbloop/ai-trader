@@ -56,6 +56,7 @@ class CaptureReport:
     bytes_written: int = 0
     partial_tail_detected: bool = False
     replay_verification: dict[str, object] = field(default_factory=dict)
+    transport_telemetry: dict[str, object] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, object]: return asdict(self)
 
@@ -72,6 +73,7 @@ class CaptureEngine:
         self.valid_duration_ns = 0; self.invalid_duration_ns = 0; self.unknown_duration_intervals = 0
         self.stop_reason = "input_exhausted"; self.stop_reason_source = "runtime"
         self._stop_requested = False; self.snapshot_attempts = 0
+        self.transport_telemetry: dict[str, object] = {}
         self.state_transitions: list[dict[str, object]] = [{"record": 0, "valid": False,
             "reason": "awaiting_snapshot", "update_id": None}]
 
@@ -139,6 +141,7 @@ class CaptureEngine:
             self._reject("receive_sequence_error"); return
         self._observed_sequences[envelope.session_id] = envelope.receive_sequence
 
+        logical_stream = envelope.stream
         try: payload = json.loads(envelope.payload_raw)
         except (json.JSONDecodeError, UnicodeDecodeError):
             before = (self.book.valid, self.book.invalid_reason, self.book.update_id)
@@ -146,10 +149,20 @@ class CaptureEngine:
             self._transition(before); self._reject("malformed_payload"); return
         if not isinstance(payload, dict):
             self._reject("payload_not_object"); return
+        if logical_stream == "combined":
+            try:
+                stream_name = payload["stream"]
+                payload = payload["data"]
+                if not isinstance(stream_name, str) or not isinstance(payload, dict):
+                    raise ValueError("invalid combined stream wrapper")
+                suffix = stream_name.split("@", 1)[1]
+                logical_stream = "depth" if suffix.startswith("depth") else suffix
+            except (KeyError, IndexError, TypeError, ValueError) as exc:
+                self._reject(type(exc).__name__ + ":" + str(exc)); return
         before = (self.book.valid, self.book.invalid_reason, self.book.update_id)
-        try: self._validate_and_apply(envelope.stream, payload)
+        try: self._validate_and_apply(logical_stream, payload, envelope.metadata)
         except (KeyError, TypeError, ValueError, BufferError) as exc:
-            self._invalidate_rejected_market_state(envelope.stream, "rejected_" + envelope.stream)
+            self._invalidate_rejected_market_state(logical_stream, "rejected_" + logical_stream)
             self._reject(type(exc).__name__ + ":" + str(exc))
         finally: self._transition(before)
 
@@ -161,9 +174,12 @@ class CaptureEngine:
         if self.config.timestamp_unit == "MICROSECOND" and value < 100_000_000_000_000:
             raise ValueError("timestamp inconsistent with MICROSECOND configuration")
 
-    def _symbol(self, payload: dict[str, object], snapshot: bool = False) -> None:
+    def _symbol(self, payload: dict[str, object], snapshot: bool = False,
+                metadata: dict[str, object] | None = None) -> None:
         key = "symbol" if snapshot else "s"
-        if payload[key] != self.config.symbol: raise ValueError("wrong symbol")
+        value = payload.get(key) if snapshot else payload[key]
+        if snapshot and value is None: value = (metadata or {}).get("symbol")
+        if value != self.config.symbol: raise ValueError("wrong symbol")
 
     def _depth_outcome(self, outcome: str) -> None:
         if outcome == "applied":
@@ -176,7 +192,8 @@ class CaptureEngine:
             self.counters.depth_duplicates += 1; self.counters.sequence_checks += 1; self.counters.sequence_passes += 1
         elif outcome == "gap": self.counters.sequence_checks += 1; self.counters.sequence_gaps += 1
 
-    def _validate_and_apply(self, stream: str, p: dict[str, object]) -> None:
+    def _validate_and_apply(self, stream: str, p: dict[str, object],
+                            metadata: dict[str, object] | None = None) -> None:
         if stream == "trade":
             self._symbol(p); [p[k] for k in ("E", "T", "t", "p", "q", "m")]
             self._validate_time(p["E"]); self._validate_time(p["T"]); return
@@ -185,7 +202,7 @@ class CaptureEngine:
             self._symbol(p); [p[k] for k in ("E", "U", "u", "b", "a")]; self._validate_time(p["E"])
             self._depth_outcome(self.book.apply_depth(p)); return
         if stream == "snapshot":
-            self._symbol(p, True); [p[k] for k in ("lastUpdateId", "bids", "asks")]
+            self._symbol(p, True, metadata); [p[k] for k in ("lastUpdateId", "bids", "asks")]
             self.snapshot_attempts += 1
             if self.snapshot_attempts > self.config.snapshot_retry_limit:
                 self.counters.snapshot_retries_exhausted += 1
@@ -200,10 +217,17 @@ class CaptureEngine:
         raise ValueError("unknown stream")
 
     def process_control(self, control: ControlRecord) -> None:
-        if control.kind != "stop": raise ValueError("unknown control")
         if not self._advance_clock(control.receive_utc, control.receive_monotonic_ns):
             self._reject("control_monotonic_discontinuity")
-        self.stop_reason = str(control.detail["reason"]); self.stop_reason_source = "control_record"
+        before = (self.book.valid, self.book.invalid_reason, self.book.update_id)
+        if control.kind == "continuity_reset":
+            self.book.start_epoch(str(control.detail.get("reason", "continuity_reset")))
+            self._transition(before)
+        elif control.kind == "book_invalidate":
+            self.book.invalidate(str(control.detail.get("reason", "local_loss")))
+            self._transition(before)
+        if control.kind == "stop":
+            self.stop_reason = str(control.detail["reason"]); self.stop_reason_source = "control_record"
 
     def _persist_stop(self, utc: str, mono: int, clock_kind: str) -> None:
         control = ControlRecord("stop", utc, mono, {"reason": self.stop_reason}, clock_kind=clock_kind)
@@ -266,7 +290,8 @@ class CaptureEngine:
             book_invariants={"numerator": self.book.invariant_checks - self.book.invariant_failures,
                              "denominator": self.book.invariant_checks, "failures": self.book.invariant_failures},
             state_transitions=list(self.state_transitions), session_boundaries=list(self.session_boundaries),
-            effective_config=asdict(self.config), bytes_written=self.writer.bytes_written if self.writer else 0)
+            effective_config=asdict(self.config), bytes_written=self.writer.bytes_written if self.writer else 0,
+            transport_telemetry=dict(self.transport_telemetry))
 
     def finalize(self) -> CaptureReport:
         report = self.report()

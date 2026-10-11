@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 import json
 from typing import Protocol
@@ -41,9 +41,10 @@ class RawEnvelope:
     receive_utc: str
     receive_monotonic_ns: int
     payload_raw: str
-    schema_version: str = "m20.2r-envelope-v2"
+    schema_version: str = "m20.3-envelope-v3"
     clock_kind: str = "synthetic"
     timestamp_unit: str = "MILLISECOND"
+    metadata: dict[str, object] = field(default_factory=dict)
     record_type: str = "event"
 
     def __post_init__(self) -> None:
@@ -76,7 +77,11 @@ class ControlRecord:
 
     def __post_init__(self) -> None:
         _validate_clock(self.receive_utc, self.receive_monotonic_ns)
-        if self.kind not in {"stop"}: raise ValueError("unknown control kind")
+        if self.kind not in {"stop", "session_start", "disconnect", "snapshot_attempt",
+                             "snapshot_failure", "reconnect_wait", "idle", "cancellation",
+                             "continuity_reset", "book_invalidate", "recovery_start",
+                             "recovery_failure", "recovery_exhausted"}:
+            raise ValueError("unknown control kind")
         if self.record_type != "control": raise ValueError("invalid control record type")
 
     def as_dict(self) -> dict[str, object]: return asdict(self)
