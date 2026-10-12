@@ -1,0 +1,205 @@
+{
+  "version": "m21.2-funding-data-access-probe-manifest-v1",
+  "source_commit": "0b9daa24f9b4e9dc8a2146512a2b6dfda0d574d5",
+  "status": "CONDITIONAL_ON_PROVENANCE_OR_TERMS",
+  "economic_experiment_executed": false,
+  "market_data_probe": {
+    "http_attempts": 21,
+    "logical_requests": 21,
+    "retries": 0,
+    "raw_body_bytes": 87009,
+    "total_probe_output_bytes": 118969,
+    "exact_headers_preserved": false,
+    "requests_repeated_after_qa_failure": false
+  },
+  "verification": {
+    "targeted_pytest": "7 passed in 0.34s",
+    "full_wsl_pytest": "425 passed, 3 warnings in 39.47s",
+    "pip_check": "No broken requirements found",
+    "protected_fixtures": "55/55 matched; 94,956,200 bytes",
+    "m20_5_artifacts": "17/17 matched",
+    "m21_1_documents": "6/6 matched",
+    "git_diff_check": "passed"
+  },
+  "m21_1_baseline": [
+    {
+      "path": "docs/M21_1_CANDIDATE_REVIEW.md",
+      "bytes": 7695,
+      "sha256": "aea2472be46253c6481d4acfc2a375d6f19d08cea61a9f1b432dcdf9ff8fab50"
+    },
+    {
+      "path": "docs/M21_1_DECISION.md",
+      "bytes": 2717,
+      "sha256": "eb503db5a51654a05a1a037d0a1b34b740513ee961386c25017615cc0f929d40"
+    },
+    {
+      "path": "docs/M21_1_PROPOSED_EXPERIMENT.md",
+      "bytes": 6027,
+      "sha256": "9f1168fb1c08d50cb7dff8e69dd0f3d54fce98ced3654d78364df7c8770e61b0"
+    },
+    {
+      "path": "docs/M21_1_REPORT.md",
+      "bytes": 4091,
+      "sha256": "30dc3a735ef508d50a4cac5304bf20c2b22a3fd99433e5a5ec87a221f1939e4b"
+    },
+    {
+      "path": "docs/M21_1_SCOPE.md",
+      "bytes": 2425,
+      "sha256": "f6e111084cd9ec4661e1d0ef21fb3e96762871378fb47af791bb47b279528bcd"
+    },
+    {
+      "path": "docs/M21_1_SOURCE_REGISTER.md",
+      "bytes": 6951,
+      "sha256": "1dc798a3bf1eb7cc7fed07e0024a77f1e1d63539809b6522f5b8a86cdd4e44c6"
+    }
+  ],
+  "artifact_count": 29,
+  "artifacts": [
+    {
+      "path": "app/research/funding_access_probe.py",
+      "bytes": 17274,
+      "sha256": "a09ef7cd87a3b23a1f34c052592cf85af2203b1958141d23af1c9fb925308abe"
+    },
+    {
+      "path": "tests/test_funding_access_probe.py",
+      "bytes": 3935,
+      "sha256": "273829f367d855f4cb80d8bd3b4e2a4c1774e376ee301fe456915ba8a0efbaf1"
+    },
+    {
+      "path": "docs/M21_2_PROTOCOL.md",
+      "bytes": 7159,
+      "sha256": "3fe79efa076ba55e576a17990a4fc04b705dacf8755b8ef9b321961174322857"
+    },
+    {
+      "path": "docs/M21_2_DESIGN_ADDENDUM.md",
+      "bytes": 5950,
+      "sha256": "c66757296fa4c8ac927867ea6584b1c708f49f31875a3b02a69c9a75c8a21b20"
+    },
+    {
+      "path": "docs/M21_2_DATA_ACCESS_REPORT.md",
+      "bytes": 8285,
+      "sha256": "1d1b332d9b8f02f6fae903ddfc02766763f9f5688430ce82e2c3f50ca1d617c9"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/probe_failure.json",
+      "bytes": 445,
+      "sha256": "2c695c7d190f99c14a4ef2a0ae0a9ad3c1e187ff8fb0730edd3e65f16b86de45"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/qa_summary.json",
+      "bytes": 10383,
+      "sha256": "cc228e34a0a8617ef9fbd79d0c5957be6fffbfd5f3cb5c16fa24d4d3af652a96"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/01_funding_btcusdt_beginning_attempt1.body",
+      "bytes": 676,
+      "sha256": "a6da269305d00805668169668d36db6108d3f31d8e5323c5bd0126a2fbc5b994"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/02_premium_btcusdt_beginning_attempt1.body",
+      "bytes": 5211,
+      "sha256": "1967786d6b6f3c8ae048cd2221ff167b712880a6de1f09bbc43408803476e0e1"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/03_spot_btcusdt_beginning_attempt1.body",
+      "bytes": 8251,
+      "sha256": "803b02767f59d2885b23692452c7c9230736016107b701c0b72232fce35c107c"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/04_funding_ethusdt_beginning_attempt1.body",
+      "bytes": 674,
+      "sha256": "5871ee8291e93d55a9ecbce92882d02f0eb5cd484ab5ffb942964c4b7e185998"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/05_premium_ethusdt_beginning_attempt1.body",
+      "bytes": 5185,
+      "sha256": "4b26fcfbf1557a0bcfba5276072971739df08be1ffdc9583744206f44ae2f859"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/06_spot_ethusdt_beginning_attempt1.body",
+      "bytes": 8041,
+      "sha256": "6fb99b1510b857544ce71ee6dc004748201e12114d854161a1fa926ef9677e84"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/07_funding_btcusdt_middle_attempt1.body",
+      "bytes": 673,
+      "sha256": "e4b4bc64df3c29197f4cd9852048c4be3f5a6d54d9d86117e9107cf016a3b58c"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/08_premium_btcusdt_middle_attempt1.body",
+      "bytes": 5239,
+      "sha256": "5262da27f401b034d8f618d424b9c9dd505f6ea22d71e6e462e916a571370195"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/09_spot_btcusdt_middle_attempt1.body",
+      "bytes": 8532,
+      "sha256": "29c4b9b2867c4cba3a763ad85b84ff0d01897a5ccb06837584042ac44f1f34e4"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/10_funding_ethusdt_middle_attempt1.body",
+      "bytes": 673,
+      "sha256": "e7d61d0b113abb9230f5926fb96175179118c666328dc0eed12aca65006011c0"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/11_premium_ethusdt_middle_attempt1.body",
+      "bytes": 5213,
+      "sha256": "fd408fca1950dd7873c47c5df24b7fea2588a879a5d6bcc43f3940a575ec2be4"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/12_spot_ethusdt_middle_attempt1.body",
+      "bytes": 8391,
+      "sha256": "f3c2fbe78dbbb1bb6d2383ae773a6938f98a3fc181a2edbe6b030c92b59702b8"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/13_funding_btcusdt_end_attempt1.body",
+      "bytes": 757,
+      "sha256": "c70ae8a9ac9c526da85f528cd4fc36c7852bdcf3c69c654ae51df541b63b0d6d"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/14_premium_btcusdt_end_attempt1.body",
+      "bytes": 5264,
+      "sha256": "f8dc0615dc54d4546c2f1cf1f04d475d024774d245fec4d17323da1e984d1362"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/15_spot_btcusdt_end_attempt1.body",
+      "bytes": 8605,
+      "sha256": "51f7ad819f398c49a0d13f0fe187de8cf3a3499776f5bd77e2e0bee1a70e134f"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/16_funding_ethusdt_end_attempt1.body",
+      "bytes": 751,
+      "sha256": "147b557597e5607fa4d77b3d0f87467466de9f9142763a70d6d0dff09eb9662e"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/17_premium_ethusdt_end_attempt1.body",
+      "bytes": 5250,
+      "sha256": "27df65d2ac66654a0d47d1f364030031464cc23dee14433d66e4c5814eef2867"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/18_spot_ethusdt_end_attempt1.body",
+      "bytes": 8500,
+      "sha256": "95ff248f1139e8aa658513878ab44a6b450e2caa257f8ccd2c29d20d710db556"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/19_funding_btcusdt_middle_page1_attempt1.body",
+      "bytes": 225,
+      "sha256": "7cbc8a2c79e8a3b56f1d22dd4d720d87c80870e8c5a6660e9b72b87953100114"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/20_funding_btcusdt_middle_page2_attempt1.body",
+      "bytes": 225,
+      "sha256": "4f813fb9567282c3cc9e5c122bc03d3d48aab42b6b0e5d5c174e275d6935b8e7"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/raw/21_funding_ethusdt_middle_repeat_attempt1.body",
+      "bytes": 673,
+      "sha256": "e7d61d0b113abb9230f5926fb96175179118c666328dc0eed12aca65006011c0"
+    },
+    {
+      "path": "data/research/m21_2_funding_access_probe_v1/request_log.json",
+      "bytes": 21132,
+      "sha256": "5c7ff2d6bc61ac05de1d9d9325e0d4e6a483788bb40c8a2474f7b846e7e7b7c2"
+    }
+  ],
+  "note": "This manifest excludes itself. Raw responses are bounded probe evidence, not a research dataset or economic result."
+}
